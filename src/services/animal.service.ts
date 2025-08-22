@@ -8,6 +8,7 @@ import { Animal } from '../models/animal.model';
 import { AnimalDto } from '../dto/animal.dto';
 import { Species } from '../models/species.model';
 import { User } from '../models/user.model';
+import { Comment } from '../models/comment.model';
 
 @Injectable()
 export class AnimalService {
@@ -18,6 +19,8 @@ export class AnimalService {
     private readonly speciesRepository: typeof Species,
     @InjectModel(User)
     private readonly userRepository: typeof User,
+    @InjectModel(Comment)
+    private readonly commentRepository: typeof Comment,
   ) {}
 
   async getAnimalById(id: string) {
@@ -140,6 +143,10 @@ export class AnimalService {
     if (!findAnimal) {
       throw new NotFoundException('El animal especificado no existe');
     }
+
+    await this.commentRepository.destroy({
+      where: { id_animal: id },
+    });
 
     const deleteAnimal = await this.animalRepository.destroy({
       where: { id },

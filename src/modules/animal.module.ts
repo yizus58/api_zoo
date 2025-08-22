@@ -7,9 +7,13 @@ import { AnimalController } from '../controllers/animal.controller';
 import { AnimalService } from '../services/animal.service';
 import { AuthModule } from './auth.module';
 import { RolesGuard } from '../guards/roles.guard';
+import { Comment } from '../models/comment.model';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Animal, Species, User]), AuthModule],
+  imports: [
+    SequelizeModule.forFeature([Animal, Species, User, Comment]),
+    AuthModule,
+  ],
   controllers: [AnimalController],
   providers: [AnimalService, RolesGuard],
   exports: [AnimalService],

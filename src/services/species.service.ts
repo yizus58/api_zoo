@@ -110,6 +110,12 @@ export class SpeciesService {
       throw new NotFoundException('La especie especificada no existe');
     }
 
+    if (findSpecies.animals.length > 0) {
+      throw new ConflictException(
+        'No se puede eliminar la especie, hay animales relacionados',
+      );
+    }
+
     const deleteSpecies = await this.speciesRepository.destroy({
       where: { id },
     });
