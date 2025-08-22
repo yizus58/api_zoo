@@ -11,6 +11,15 @@ import { CreateUserDto } from '../dto/auth.dto';
 import { v4 as uuidv4 } from 'uuid';
 import * as bcrypt from 'bcrypt';
 
+interface UserCreateResponse {
+  result: boolean;
+  data: {
+    id: string;
+    email: string;
+    role: UserRole;
+  };
+}
+
 @Injectable()
 export class UserService implements OnApplicationBootstrap {
   private adminUserSeeded = false;
@@ -50,7 +59,7 @@ export class UserService implements OnApplicationBootstrap {
         this.configService.get<string>('NODE_ENV') === 'development' ? 8 : 10;
       const hashedPassword = await bcrypt.hash('admin', saltRounds);
 
-      const adminUser = await this.userRepository.create({
+      await this.userRepository.create({
         id: uuidv4(),
         email: 'admin@mail.com',
         password: hashedPassword,
@@ -65,9 +74,7 @@ export class UserService implements OnApplicationBootstrap {
     this.adminUserSeeded = true;
   }
 
-  async createUser(
-    createUserDto: CreateUserDto,
-  ): Promise<{ id: string; email: string; role: UserRole }> {
+  async createUser(createUserDto: CreateUserDto): Promise<UserCreateResponse> {
     const existingUser = await this.userRepository.findOne({
       where: { email: createUserDto.email },
     });
@@ -85,9 +92,12 @@ export class UserService implements OnApplicationBootstrap {
     });
 
     return {
-      id: newUser.id,
-      email: newUser.email,
-      role: newUser.role,
+      result: true,
+      data: {
+        id: newUser.id,
+        email: newUser.email,
+        role: newUser.role,
+      },
     };
   }
 

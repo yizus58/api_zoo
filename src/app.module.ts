@@ -6,6 +6,7 @@ import { DatabaseModule } from './modules/database.module';
 import { UserModule } from './modules/user.module';
 import { AuthModule } from './modules/auth.module';
 import { ZoneModule } from './modules/zone.module';
+import { SpeciesModule } from './modules/species.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ZoneModule } from './modules/zone.module';
     UserModule,
     AuthModule,
     ZoneModule,
+    SpeciesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -21,6 +21,7 @@ export class ZoneService {
         {
           model: Species,
           as: 'species',
+          attributes: { exclude: ['id_area'] },
         },
       ],
     });
@@ -37,6 +38,7 @@ export class ZoneService {
         {
           model: Species,
           as: 'species',
+          attributes: { exclude: ['id_area'] },
         },
       ],
     });
@@ -75,7 +77,10 @@ export class ZoneService {
 
     const update = await this.zoneRepository.update(zoneDto, { where: { id: id } });
     if (update) {
-      return {result: true, message: 'Zona actualizada con éxito' };
+      return {
+        result: true,
+        message: 'Zona actualizada con éxito',
+      };
     }
   }
 
