@@ -9,8 +9,10 @@ import {
   AllowNull,
   BelongsTo,
   ForeignKey,
+  HasMany,
 } from 'sequelize-typescript';
 import { Zone } from './zone.model';
+import { Animal } from './animal.model';
 
 @Table({
   tableName: 'species',
@@ -36,4 +38,7 @@ export class Species extends Model<Species> {
 
   @BelongsTo(() => Zone)
   declare zone: Zone;
+
+  @HasMany(() => Animal)
+  declare animals: Animal[];
 }

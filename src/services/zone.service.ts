@@ -7,6 +7,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Zone } from '../models/zone.model';
 import { ZoneDto } from '../dto/zone.dto';
 import { Species } from '../models/species.model';
+import { Animal } from '../models/animal.model';
 
 @Injectable()
 export class ZoneService {
@@ -22,6 +23,12 @@ export class ZoneService {
           model: Species,
           as: 'species',
           attributes: { exclude: ['id_area'] },
+          include: [
+            {
+              model: Animal,
+              attributes: { exclude: ['id_especie', 'id_user_created'] },
+            },
+          ],
         },
       ],
     });
@@ -39,6 +46,18 @@ export class ZoneService {
           model: Species,
           as: 'species',
           attributes: { exclude: ['id_area'] },
+          include: [
+            {
+              model: Animal,
+              attributes: { exclude: ['id_especie', 'id_user_created'] },
+              include: [
+                {
+                  model: Animal,
+                  attributes: { exclude: ['id_especie', 'id_user_created'] },
+                },
+              ],
+            },
+          ],
         },
       ],
     });
@@ -75,7 +94,9 @@ export class ZoneService {
       );
     }
 
-    const update = await this.zoneRepository.update(zoneDto, { where: { id: id } });
+    const update = await this.zoneRepository.update(zoneDto, {
+      where: { id: id },
+    });
     if (update) {
       return {
         result: true,
@@ -90,6 +111,12 @@ export class ZoneService {
         {
           model: Species,
           as: 'species',
+          include: [
+            {
+              model: Animal,
+              attributes: { exclude: ['id_especie', 'id_user_created'] },
+            },
+          ],
         },
       ],
       where: { id: id },
@@ -107,7 +134,9 @@ export class ZoneService {
       );
     }
 
-    const deletedZone = await this.zoneRepository.destroy({ where: { id: id } });
+    const deletedZone = await this.zoneRepository.destroy({
+      where: { id: id },
+    });
     if (deletedZone) {
       return {
         result: true,

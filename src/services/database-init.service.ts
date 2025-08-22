@@ -43,7 +43,6 @@ export class DatabaseInitService {
 
   async syncModels(): Promise<void> {
     try {
-
       const sequelize = new Sequelize({
         dialect: 'postgres',
         host: this.configService.get<string>('DB_HOST', 'localhost'),

@@ -7,6 +7,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Species } from '../models/species.model';
 import { SpeciesDto } from '../dto/species.dto';
 import { Zone } from '../models/zone.model';
+import { Animal } from '../models/animal.model';
 
 @Injectable()
 export class SpeciesService {
@@ -20,6 +21,12 @@ export class SpeciesService {
   async getAllSpecies() {
     const findSpecies = await this.speciesRepository.findAll({
       attributes: { exclude: ['id_area'] },
+      include: [
+        {
+          model: Animal,
+          attributes: { exclude: ['id_especie', 'id_user_created'] },
+        },
+      ],
     });
 
     if (findSpecies.length == 0) {

@@ -7,6 +7,7 @@ import { UserModule } from './modules/user.module';
 import { AuthModule } from './modules/auth.module';
 import { ZoneModule } from './modules/zone.module';
 import { SpeciesModule } from './modules/species.module';
+import { AnimalModule } from './modules/animal.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { SpeciesModule } from './modules/species.module';
     AuthModule,
     ZoneModule,
     SpeciesModule,
+    AnimalModule,
   ],
   controllers: [AppController],
   providers: [AppService],
