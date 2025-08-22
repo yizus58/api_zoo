@@ -51,4 +51,9 @@ export class AnimalController {
   async getAllAnimals() {
     return this.animalService.getAllAnimals();
   }
+
+  @Get(':id')
+  async getAnimalById(@Param('id') id: string) {
+    return this.animalService.getAnimalById(id);
+  }
 }

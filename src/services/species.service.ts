@@ -18,6 +18,24 @@ export class SpeciesService {
     private readonly zoneRepository: typeof Zone,
   ) {}
 
+  async getSpeciesById(id: string) {
+    const findSpecies = await this.speciesRepository.findByPk(id, {
+      attributes: { exclude: ['id_area'] },
+      include: [
+        {
+          model: Animal,
+          attributes: { exclude: ['id_especie', 'id_user_created'] },
+        },
+      ],
+    });
+
+    if (!findSpecies) {
+      throw new NotFoundException('Especie no encontrada');
+    }
+
+    return findSpecies;
+  }
+
   async getAllSpecies() {
     const findSpecies = await this.speciesRepository.findAll({
       attributes: { exclude: ['id_area'] },

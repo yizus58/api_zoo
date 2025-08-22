@@ -20,6 +20,31 @@ export class AnimalService {
     private readonly userRepository: typeof User,
   ) {}
 
+  async getAnimalById(id: string) {
+    const findAnimal = await this.animalRepository.findByPk(id, {
+      attributes: { exclude: ['id_especie', 'id_user_created'] },
+      include: [
+        {
+          model: Species,
+          attributes: ['nombre'],
+        },
+        {
+          model: User,
+          attributes: ['email'],
+        },
+      ],
+    });
+
+    if (!findAnimal) {
+      throw new NotFoundException('Animal no encontrado');
+    }
+
+    return {
+      status: true,
+      data: findAnimal,
+    };
+  }
+
   async getAllAnimals() {
     const findAnimals = await this.animalRepository.findAll({
       attributes: { exclude: ['id_especie', 'id_user_created'] },

@@ -48,4 +48,9 @@ export class SpeciesController {
   async getAllSpecies() {
     return this.speciesService.getAllSpecies();
   }
+
+  @Get(':id')
+  async getSpeciesById(@Param('id') id: string) {
+    return this.speciesService.getSpeciesById(id);
+  }
 }
