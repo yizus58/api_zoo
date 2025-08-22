@@ -8,6 +8,7 @@ import { AuthModule } from './modules/auth.module';
 import { ZoneModule } from './modules/zone.module';
 import { SpeciesModule } from './modules/species.module';
 import { AnimalModule } from './modules/animal.module';
+import { CommentModule } from './modules/comment.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AnimalModule } from './modules/animal.module';
     ZoneModule,
     SpeciesModule,
     AnimalModule,
+    CommentModule,
   ],
   controllers: [AppController],
   providers: [AppService],
