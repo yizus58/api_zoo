@@ -5,6 +5,7 @@ import { Species } from '../models/species.model';
 import { User } from '../models/user.model';
 import { Comment } from '../models/comment.model';
 import { Zone } from '../models/zone.model';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class IndicatorsService {
@@ -282,6 +283,141 @@ export class IndicatorsService {
         porcentaje_con_respuestas: parseFloat(porcentajeConRespuestas),
         porcentaje_sin_respuestas: parseFloat(porcentajeSinRespuestas),
       },
+    };
+  }
+
+  async findZoneQuery(like: string): Promise<Array<{
+    id: string;
+    nombre: string;
+    especies: Array<{
+      id: string;
+      nombre: string;
+      animales: Array<{
+        id: string;
+        nombre: string;
+        id_user_created: string;
+        userCreated?: { email: string };
+        comentarios: Array<{
+          id: string;
+          comentario: string;
+          fecha: Date;
+          userCreated?: { email: string };
+          respuestas: Array<{
+            id: string;
+            comentario: string;
+            fecha: Date;
+            userCreated?: { email: string };
+          }>;
+        }>;
+      }>;
+    }>;
+  }> | null> {
+    const zonesWithSpecies = await this.zoneRepository.findAll({
+      where: { nombre: { [Op.iLike]: `%${like}%` } },
+      attributes: ['id', 'nombre'],
+      include: [
+        {
+          model: Species,
+          attributes: ['id', 'nombre'],
+          include: [
+            {
+              model: Animal,
+              attributes: ['id', 'nombre', 'id_user_created'],
+              include: [
+                {
+                  model: User,
+                  as: 'userCreated',
+                  attributes: ['email'],
+                },
+                {
+                  model: Comment,
+                  as: 'comments',
+                  attributes: ['id', 'comentario', 'fecha', 'id_user_created'],
+                  where: {
+                    id_comentario_principal: null,
+                  },
+                  required: false,
+                  include: [
+                    {
+                      model: User,
+                      as: 'userCreated',
+                      attributes: ['email'],
+                    },
+                    {
+                      model: Comment,
+                      as: 'respuestas',
+                      attributes: [
+                        'id',
+                        'comentario',
+                        'fecha',
+                        'id_user_created',
+                      ],
+                      include: [
+                        {
+                          model: User,
+                          as: 'userCreated',
+                          attributes: ['email'],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    if (zonesWithSpecies.length === 0) {
+      return null;
+    }
+
+    return zonesWithSpecies.map((zone) => ({
+      id: zone.id,
+      nombre: zone.nombre,
+      especies:
+        (zone as any).species?.map((species: any) => ({
+          id: species.id as string,
+          nombre: species.nombre,
+          animales:
+            species.animals?.map((animal: any) => ({
+              id: animal.id as string,
+              nombre: animal.nombre,
+              id_user_created: animal.id_user_created,
+              ...(animal.userCreated && {
+                userCreated: { email: animal.userCreated.email },
+              }),
+              comentarios:
+                animal.comments?.map((comment: any) => ({
+                  id: comment.id as string,
+                  comentario: comment.comentario,
+                  fecha: comment.fecha,
+                  ...(comment.userCreated && {
+                    userCreated: { email: comment.userCreated.email },
+                  }),
+                  respuestas:
+                    comment.respuestas?.map((respuesta: any) => ({
+                      id: respuesta.id as string,
+                      comentario: respuesta.comentario,
+                      fecha: respuesta.fecha,
+                      ...(respuesta.userCreated && {
+                        userCreated: { email: respuesta.userCreated.email },
+                      }),
+                    })) || [],
+                })) || [],
+            })) || [],
+        })) || [],
+    }));
+  }
+
+  async findAllQuery(searchTerm: string) {
+    const data = await this.findZoneQuery(searchTerm);
+
+    return {
+      termino_busqueda: searchTerm,
+      total_resultados: data?.length || 0,
+      resultados: data || [],
     };
   }
 }

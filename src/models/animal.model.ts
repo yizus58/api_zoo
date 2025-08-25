@@ -49,6 +49,6 @@ export class Animal extends Model<Animal> {
   @BelongsTo(() => User)
   declare userCreated: User;
 
-  @HasMany(() => Comment, { foreignKey: 'id' })
+  @HasMany(() => Comment, { foreignKey: 'id_animal' })
   declare comments: Comment[];
 }

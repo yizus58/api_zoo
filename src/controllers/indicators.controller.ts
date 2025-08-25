@@ -39,4 +39,9 @@ export class IndicatorsController {
   async getPercentageOfResponseCommentary() {
     return this.indicatorService.getAverageComment();
   }
+
+  @Get(':id')
+  async findAllQuery(@Param('id') id: string) {
+    return this.indicatorService.findAllQuery(id);
+  }
 }
