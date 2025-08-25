@@ -9,9 +9,11 @@ import {
   AllowNull,
   BelongsTo,
   ForeignKey,
+  HasMany,
 } from 'sequelize-typescript';
 import { Species } from './species.model';
 import { User } from './user.model';
+import { Comment } from './comment.model';
 
 @Table({
   tableName: 'animals',
@@ -46,4 +48,7 @@ export class Animal extends Model<Animal> {
 
   @BelongsTo(() => User)
   declare userCreated: User;
+
+  @HasMany(() => Comment, { foreignKey: 'id' })
+  declare comments: Comment[];
 }

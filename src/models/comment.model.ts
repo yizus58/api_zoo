@@ -52,10 +52,10 @@ export class Comment extends Model<Comment> {
   @Column(DataType.DATE)
   declare fecha: Date;
 
-  @BelongsTo(() => Animal)
+  @BelongsTo(() => Animal, { foreignKey: 'id_animal' })
   declare animal: Animal;
 
-  @BelongsTo(() => User)
+  @BelongsTo(() => User, { foreignKey: 'id_user_created' })
   declare userCreated: User;
 
   @BelongsTo(() => Comment, { foreignKey: 'id_comentario_principal' })

@@ -1,9 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  ValidationPipe
-} from '@nestjs/common';
+import { Controller, Get, Param, ValidationPipe } from '@nestjs/common';
 import { IndicatorsService } from '../services/indicators.services';
 
 @Controller('indicadores')
@@ -32,5 +27,17 @@ export class IndicatorsController {
     @Param('id', new ValidationPipe()) id: string,
   ) {
     return this.indicatorService.getTotalAnimalsSpecies(id);
+  }
+
+  @Get('porcentaje-comentarios-animales')
+  async getPercentageOfCommentaryAnimals() {
+    const id = null;
+    return this.indicatorService.getAverageCommentBySpecies(id);
+  }
+
+  @Get('porcentaje-comentario-respuesta')
+  async getPercentageOfResponseCommentary() {
+    const id = null;
+    return this.indicatorService.getAverageComment(id);
   }
 }
