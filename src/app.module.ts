@@ -9,6 +9,7 @@ import { ZoneModule } from './modules/zone.module';
 import { SpeciesModule } from './modules/species.module';
 import { AnimalModule } from './modules/animal.module';
 import { CommentModule } from './modules/comment.module';
+import { IndicatorsModule } from './modules/indicators.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { CommentModule } from './modules/comment.module';
     SpeciesModule,
     AnimalModule,
     CommentModule,
+    IndicatorsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
