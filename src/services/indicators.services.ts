@@ -182,7 +182,106 @@ export class IndicatorsService {
     };
   }
 
-  async getAverageComment(id: string | null) {
+  async getAverageComment() {
+    const findComments = await this.commentRepository.findAll({
+      attributes: [
+        'id',
+        'comentario',
+        'id_animal',
+        'id_comentario_principal',
+        'fecha',
+      ],
+      include: [
+        {
+          model: Comment,
+          as: 'respuestas',
+          attributes: ['id', 'comentario', 'fecha'],
+        },
+        {
+          model: Animal,
+          as: 'animal',
+          attributes: ['id', 'nombre'],
+        },
+      ],
+    });
 
+    if (findComments.length === 0) {
+      throw new HttpException(
+        'No hay comentarios registrados',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const comentariosPrincipales = findComments.filter(
+      (comment) =>
+        comment.id_comentario_principal === null ||
+        comment.id_comentario_principal === undefined,
+    );
+
+    if (comentariosPrincipales.length === 0) {
+      throw new HttpException(
+        'No hay comentarios principales registrados',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const comentariosConRespuestas = comentariosPrincipales.filter(
+      (comment) => comment.respuestas && comment.respuestas.length > 0,
+    );
+
+    const comentariosSinRespuestas = comentariosPrincipales.filter(
+      (comment) => !comment.respuestas || comment.respuestas.length === 0,
+    );
+
+    const totalComentariosPrincipales = comentariosPrincipales.length;
+    const totalConRespuestas = comentariosConRespuestas.length;
+    const totalSinRespuestas = comentariosSinRespuestas.length;
+
+    const porcentajeConRespuestas = (
+      (totalConRespuestas / totalComentariosPrincipales) *
+      100
+    ).toFixed(2);
+    const porcentajeSinRespuestas = (
+      (totalSinRespuestas / totalComentariosPrincipales) *
+      100
+    ).toFixed(2);
+
+    const estadisticas = [
+      {
+        categoria: 'Comentarios con respuestas',
+        cantidad: totalConRespuestas,
+        porcentaje: parseFloat(porcentajeConRespuestas),
+        comentarios: comentariosConRespuestas.map((comment) => ({
+          id: comment.id,
+          comentario: comment.comentario,
+          animal: comment.animal ? comment.animal.nombre : 'Sin animal',
+          totalRespuestas: comment.respuestas ? comment.respuestas.length : 0,
+          respuestas: comment.respuestas || [],
+        })),
+      },
+      {
+        categoria: 'Comentarios sin respuestas',
+        cantidad: totalSinRespuestas,
+        porcentaje: parseFloat(porcentajeSinRespuestas),
+        comentarios: comentariosSinRespuestas.map((comment) => ({
+          id: comment.id,
+          comentario: comment.comentario,
+          animal: comment.animal ? comment.animal.nombre : 'Sin animal',
+          totalRespuestas: 0,
+          respuestas: [],
+        })),
+      },
+    ].sort((a, b) => b.porcentaje - a.porcentaje);
+
+    return {
+      estadisticas: estadisticas,
+      resumen: {
+        total_comentarios_principales: totalComentariosPrincipales,
+        comentarios_con_respuestas: totalConRespuestas,
+        comentarios_sin_respuestas: totalSinRespuestas,
+        porcentaje_con_respuestas: parseFloat(porcentajeConRespuestas),
+        porcentaje_sin_respuestas: parseFloat(porcentajeSinRespuestas),
+      },
+    };
   }
 }

@@ -37,7 +37,6 @@ export class IndicatorsController {
 
   @Get('porcentaje-comentario-respuesta')
   async getPercentageOfResponseCommentary() {
-    const id = null;
-    return this.indicatorService.getAverageComment(id);
+    return this.indicatorService.getAverageComment();
   }
 }
