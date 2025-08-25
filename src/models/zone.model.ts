@@ -25,7 +25,7 @@ export class Zone extends Model<Zone> {
   @Column({
     type: DataType.STRING,
   })
-  declare name: string;
+  declare nombre: string;
 
   @HasMany(() => Species)
   declare species: Species[];

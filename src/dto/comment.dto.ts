@@ -4,6 +4,7 @@ import {
   MinLength,
   IsUUID,
   IsOptional,
+  IsDate,
 } from 'class-validator';
 
 export class CommentDto {
@@ -19,4 +20,8 @@ export class CommentDto {
   @IsOptional()
   @IsUUID()
   id_comentario_principal?: string;
+
+  @IsOptional()
+  @IsDate()
+  fecha_creacion?: Date;
 }

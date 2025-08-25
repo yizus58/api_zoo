@@ -35,7 +35,7 @@ export class AnimalService {
     });
 
     if (!findAnimal) {
-      throw new HttpException('Animal no encontrado', HttpStatus.NO_CONTENT);
+      throw new HttpException('Animal no encontrado', HttpStatus.NOT_FOUND);
     }
 
     return {
@@ -62,7 +62,7 @@ export class AnimalService {
     if (findAnimals.length == 0) {
       throw new HttpException(
         'No hay animales registrados',
-        HttpStatus.NO_CONTENT,
+        HttpStatus.NOT_FOUND,
       );
     }
     return {
@@ -89,7 +89,7 @@ export class AnimalService {
     if (!findSpecies) {
       throw new HttpException(
         'La especie especificada no existe',
-        HttpStatus.NO_CONTENT,
+        HttpStatus.NOT_FOUND,
       );
     }
 
@@ -97,7 +97,7 @@ export class AnimalService {
     if (!findUser) {
       throw new HttpException(
         'El usuario especificado no existe',
-        HttpStatus.NO_CONTENT,
+        HttpStatus.NOT_FOUND,
       );
     }
 
@@ -121,7 +121,7 @@ export class AnimalService {
     if (!findAnimal) {
       throw new HttpException(
         'El animal especificado no existe',
-        HttpStatus.NO_CONTENT,
+        HttpStatus.NOT_FOUND,
       );
     }
 
@@ -131,7 +131,7 @@ export class AnimalService {
     if (!findSpecies) {
       throw new HttpException(
         'La especie especificada no existe',
-        HttpStatus.NO_CONTENT,
+        HttpStatus.NOT_FOUND,
       );
     }
 
@@ -139,7 +139,7 @@ export class AnimalService {
     if (!findUser) {
       throw new HttpException(
         'El usuario especificado no existe',
-        HttpStatus.NO_CONTENT,
+        HttpStatus.NOT_FOUND,
       );
     }
 
@@ -160,7 +160,7 @@ export class AnimalService {
     if (!findAnimal) {
       throw new HttpException(
         'El animal especificado no existe',
-        HttpStatus.NO_CONTENT,
+        HttpStatus.NOT_FOUND,
       );
     }
 

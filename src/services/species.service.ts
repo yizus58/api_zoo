@@ -28,7 +28,7 @@ export class SpeciesService {
     if (!findSpecies) {
       throw new HttpException(
         'La especie especificada no existe',
-        HttpStatus.NO_CONTENT,
+        HttpStatus.NOT_FOUND,
       );
     }
 
@@ -49,7 +49,7 @@ export class SpeciesService {
     if (findSpecies.length == 0) {
       throw new HttpException(
         'No hay especies registradas',
-        HttpStatus.NO_CONTENT,
+        HttpStatus.NOT_FOUND,
       );
     }
     return {
@@ -74,7 +74,7 @@ export class SpeciesService {
     if (!findArea) {
       throw new HttpException(
         'El área especificada no existe',
-        HttpStatus.NO_CONTENT,
+        HttpStatus.NOT_FOUND,
       );
     }
 
@@ -92,7 +92,7 @@ export class SpeciesService {
     if (!findSpecies) {
       throw new HttpException(
         'La especie especificada no existe',
-        HttpStatus.NO_CONTENT,
+        HttpStatus.NOT_FOUND,
       );
     }
 
@@ -100,7 +100,7 @@ export class SpeciesService {
     if (!findArea) {
       throw new HttpException(
         'El área especificada no existe',
-        HttpStatus.NO_CONTENT,
+        HttpStatus.NOT_FOUND,
       );
     }
 
@@ -121,7 +121,7 @@ export class SpeciesService {
     if (!findSpecies) {
       throw new HttpException(
         'La especie especificada no existe',
-        HttpStatus.NO_CONTENT,
+        HttpStatus.NOT_FOUND,
       );
     }
 

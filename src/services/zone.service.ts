@@ -32,7 +32,7 @@ export class ZoneService {
     if (findAreas.length == 0) {
       throw new HttpException(
         'No hay zonas registradas',
-        HttpStatus.NO_CONTENT,
+        HttpStatus.NOT_FOUND,
       );
     }
     return findAreas;
@@ -64,7 +64,7 @@ export class ZoneService {
     if (!findZone) {
       throw new HttpException(
         'No se encontró la zona especifica',
-        HttpStatus.NO_CONTENT,
+        HttpStatus.NOT_FOUND,
       );
     }
 
@@ -73,7 +73,7 @@ export class ZoneService {
 
   async createArea(zoneDto: ZoneDto) {
     const findZone = await this.zoneRepository.findOne({
-      where: { name: zoneDto.name },
+      where: { nombre: zoneDto.nombre },
     });
 
     if (findZone) {
@@ -94,7 +94,7 @@ export class ZoneService {
     if (!findZone) {
       throw new HttpException(
         'No se encontró la zona especifica',
-        HttpStatus.NO_CONTENT,
+        HttpStatus.NOT_FOUND,
       );
     }
 
@@ -129,7 +129,7 @@ export class ZoneService {
     if (!findZone) {
       throw new HttpException(
         'No se encontró la zona especifica',
-        HttpStatus.NO_CONTENT,
+        HttpStatus.NOT_FOUND,
       );
     }
 

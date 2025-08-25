@@ -15,6 +15,7 @@ interface CommentWithAnimalAndUser {
   comentario: string;
   id_animal: string;
   id_user_created: string;
+  fecha: Date;
   id_comentario_principal?: string;
 }
 
@@ -65,7 +66,7 @@ export class CommentService {
     if (findComments.length == 0) {
       throw new HttpException(
         'No hay comentarios registrados',
-        HttpStatus.NO_CONTENT,
+        HttpStatus.NOT_FOUND,
       );
     }
     return {
@@ -140,6 +141,7 @@ export class CommentService {
       comentario: commentDto.comentario,
       id_animal: commentDto.id_animal,
       id_user_created: id,
+      fecha: new Date(),
     };
 
     if (commentDto.id_comentario_principal) {

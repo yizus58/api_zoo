@@ -48,6 +48,10 @@ export class Comment extends Model<Comment> {
   })
   declare id_comentario_principal: string;
 
+  @AllowNull(false)
+  @Column(DataType.DATE)
+  declare fecha: Date;
+
   @BelongsTo(() => Animal)
   declare animal: Animal;
 
