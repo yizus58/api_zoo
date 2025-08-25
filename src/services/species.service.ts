@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Species } from '../models/species.model';
 import { SpeciesDto } from '../dto/species.dto';
@@ -30,7 +26,10 @@ export class SpeciesService {
     });
 
     if (!findSpecies) {
-      throw new NotFoundException('Especie no encontrada');
+      throw new HttpException(
+        'La especie especificada no existe',
+        HttpStatus.NO_CONTENT,
+      );
     }
 
     return findSpecies;
@@ -48,7 +47,10 @@ export class SpeciesService {
     });
 
     if (findSpecies.length == 0) {
-      throw new NotFoundException('No hay especies registradas');
+      throw new HttpException(
+        'No hay especies registradas',
+        HttpStatus.NO_CONTENT,
+      );
     }
     return {
       status: true,
@@ -62,14 +64,18 @@ export class SpeciesService {
     });
 
     if (findSpecies) {
-      throw new ConflictException(
+      throw new HttpException(
         'Ya hay una especie existente con ese nombre',
+        HttpStatus.CONFLICT,
       );
     }
 
     const findArea = await this.zoneRepository.findByPk(speciesDto.id_area);
     if (!findArea) {
-      throw new NotFoundException('El área especificada no existe');
+      throw new HttpException(
+        'El área especificada no existe',
+        HttpStatus.NO_CONTENT,
+      );
     }
 
     const save = await this.speciesRepository.create(speciesDto);
@@ -84,12 +90,18 @@ export class SpeciesService {
   async updateSpecies(id: string, speciesDto: SpeciesDto) {
     const findSpecies = await this.speciesRepository.findByPk(id);
     if (!findSpecies) {
-      throw new NotFoundException('La especie especificada no existe');
+      throw new HttpException(
+        'La especie especificada no existe',
+        HttpStatus.NO_CONTENT,
+      );
     }
 
     const findArea = await this.zoneRepository.findByPk(speciesDto.id_area);
     if (!findArea) {
-      throw new NotFoundException('El área especificada no existe');
+      throw new HttpException(
+        'El área especificada no existe',
+        HttpStatus.NO_CONTENT,
+      );
     }
 
     const update = await this.speciesRepository.update(speciesDto, {
@@ -107,12 +119,16 @@ export class SpeciesService {
   async deleteSpecies(id: string) {
     const findSpecies = await this.speciesRepository.findByPk(id);
     if (!findSpecies) {
-      throw new NotFoundException('La especie especificada no existe');
+      throw new HttpException(
+        'La especie especificada no existe',
+        HttpStatus.NO_CONTENT,
+      );
     }
 
     if (findSpecies.animals.length > 0) {
-      throw new ConflictException(
+      throw new HttpException(
         'No se puede eliminar la especie, hay animales relacionados',
+        HttpStatus.CONFLICT,
       );
     }
 

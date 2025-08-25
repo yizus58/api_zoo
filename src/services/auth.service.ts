@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UserService } from './user.service';
 import { LoginDto } from '../dto/auth.dto';
 import { generateJWT } from '../helpers/jwt';
@@ -12,7 +12,7 @@ export class AuthService {
 
     const user = await this.userService.findByEmail(email);
     if (!user) {
-      throw new UnauthorizedException('Credenciales inválidas');
+      throw new HttpException('Credenciales inválida', HttpStatus.UNAUTHORIZED);
     }
 
     const isPasswordValid = await this.userService.validatePassword(
@@ -20,7 +20,7 @@ export class AuthService {
       user.password,
     );
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Credenciales inválidas');
+      throw new HttpException('Contraseña inválida', HttpStatus.UNAUTHORIZED);
     }
 
     const token = await generateJWT(user.id, user.email, user.role);

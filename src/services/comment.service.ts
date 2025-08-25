@@ -1,6 +1,7 @@
 import {
+  HttpException,
+  HttpStatus,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
@@ -62,7 +63,10 @@ export class CommentService {
     });
 
     if (findComments.length == 0) {
-      throw new NotFoundException('No hay comentarios registrados');
+      throw new HttpException(
+        'No hay comentarios registrados',
+        HttpStatus.NO_CONTENT,
+      );
     }
     return {
       status: true,
@@ -73,7 +77,10 @@ export class CommentService {
   async getCommentsByAnimal(animalId: string) {
     const findAnimal = await this.animalRepository.findByPk(animalId);
     if (!findAnimal) {
-      throw new NotFoundException('El animal especificado no existe');
+      throw new HttpException(
+        'El animal especificado no existe',
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     const findComments = await this.commentRepository.findAll({
@@ -115,12 +122,18 @@ export class CommentService {
       commentDto.id_animal,
     );
     if (!findAnimal) {
-      throw new NotFoundException('El animal especificado no existe');
+      throw new HttpException(
+        'El animal especificado no existe',
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     const findUser = await this.userRepository.findByPk(id);
     if (!findUser) {
-      throw new NotFoundException('El usuario especificado no existe');
+      throw new HttpException(
+        'El usuario especificado no existe',
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     const data: CommentWithAnimalAndUser = {
@@ -134,8 +147,9 @@ export class CommentService {
         commentDto.id_comentario_principal,
       );
       if (!findMainComment) {
-        throw new NotFoundException(
+        throw new HttpException(
           'El comentario principal especificado no existe',
+          HttpStatus.FORBIDDEN,
         );
       }
       data.id_comentario_principal = commentDto.id_comentario_principal;
@@ -153,19 +167,28 @@ export class CommentService {
   async updateComment(id: string, id_user: string, commentDto: CommentDto) {
     const findComment = await this.commentRepository.findByPk(id);
     if (!findComment) {
-      throw new NotFoundException('El comentario especificado no existe');
+      throw new HttpException(
+        'El comentario especificado no existe',
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     const findAnimal = await this.animalRepository.findByPk(
       commentDto.id_animal,
     );
     if (!findAnimal) {
-      throw new NotFoundException('El animal especificado no existe');
+      throw new HttpException(
+        'El animal especificado no existe',
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     const findUser = await this.userRepository.findByPk(id_user);
     if (!findUser) {
-      throw new NotFoundException('El usuario especificado no existe');
+      throw new HttpException(
+        'El usuario especificado no existe',
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     if (commentDto.id_comentario_principal) {
@@ -173,14 +196,18 @@ export class CommentService {
         commentDto.id_comentario_principal,
       );
       if (!findMainComment) {
-        throw new NotFoundException(
+        throw new HttpException(
           'El comentario principal especificado no existe',
+          HttpStatus.FORBIDDEN,
         );
       }
     }
 
     if (id_user !== findComment.id_user_created) {
-      throw new UnauthorizedException('No puede modificar este comentario');
+      throw new HttpException(
+        'No puede modificar este comentario',
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
     const update = await this.commentRepository.update(commentDto, {
@@ -198,12 +225,18 @@ export class CommentService {
   async deleteComment(id_user: string, id: string) {
     const findUser = await this.userRepository.findByPk(id_user);
     if (!findUser) {
-      throw new NotFoundException('El usuario especificado no existe');
+      throw new HttpException(
+        'El usuario especificado no existe',
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     const findComment = await this.commentRepository.findByPk(id);
     if (!findComment) {
-      throw new NotFoundException('El comentario especificado no existe');
+      throw new HttpException(
+        'El comentario especificado no existe',
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     if (

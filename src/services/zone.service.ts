@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Zone } from '../models/zone.model';
 import { ZoneDto } from '../dto/zone.dto';
@@ -34,7 +30,10 @@ export class ZoneService {
     });
 
     if (findAreas.length == 0) {
-      throw new NotFoundException('No hay zonas registradas');
+      throw new HttpException(
+        'No hay zonas registradas',
+        HttpStatus.NO_CONTENT,
+      );
     }
     return findAreas;
   }
@@ -63,8 +62,9 @@ export class ZoneService {
     });
 
     if (!findZone) {
-      throw new NotFoundException(
-        'No se encontró la zona con el id proporcionado',
+      throw new HttpException(
+        'No se encontró la zona especifica',
+        HttpStatus.NO_CONTENT,
       );
     }
 
@@ -77,7 +77,10 @@ export class ZoneService {
     });
 
     if (findZone) {
-      throw new ConflictException('Ya hay una zona existente con ese nombre');
+      throw new HttpException(
+        'Ya hay una zona existente con ese nombre',
+        HttpStatus.CONFLICT,
+      );
     }
 
     return await this.zoneRepository.create(zoneDto);
@@ -89,8 +92,9 @@ export class ZoneService {
     });
 
     if (!findZone) {
-      throw new NotFoundException(
-        'No se encontró la zona con el id proporcionado',
+      throw new HttpException(
+        'No se encontró la zona especifica',
+        HttpStatus.NO_CONTENT,
       );
     }
 
@@ -123,14 +127,16 @@ export class ZoneService {
     });
 
     if (!findZone) {
-      throw new NotFoundException(
-        'No se encontró la zona con el id proporcionado',
+      throw new HttpException(
+        'No se encontró la zona especifica',
+        HttpStatus.NO_CONTENT,
       );
     }
 
     if (findZone.species.length > 0) {
-      throw new ConflictException(
+      throw new HttpException(
         'No se puede eliminar la zona ya que contiene especies',
+        HttpStatus.CONFLICT,
       );
     }
 

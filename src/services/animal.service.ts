@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Animal } from '../models/animal.model';
 import { AnimalDto } from '../dto/animal.dto';
@@ -39,7 +35,7 @@ export class AnimalService {
     });
 
     if (!findAnimal) {
-      throw new NotFoundException('Animal no encontrado');
+      throw new HttpException('Animal no encontrado', HttpStatus.NO_CONTENT);
     }
 
     return {
@@ -64,7 +60,10 @@ export class AnimalService {
     });
 
     if (findAnimals.length == 0) {
-      throw new NotFoundException('No hay animales registrados');
+      throw new HttpException(
+        'No hay animales registrados',
+        HttpStatus.NO_CONTENT,
+      );
     }
     return {
       status: true,
@@ -78,19 +77,28 @@ export class AnimalService {
     });
 
     if (findAnimal) {
-      throw new ConflictException('Ya hay un animal existente con ese nombre');
+      throw new HttpException(
+        'Ya hay un animal existente con ese nombre',
+        HttpStatus.CONFLICT,
+      );
     }
 
     const findSpecies = await this.speciesRepository.findByPk(
       animalDto.id_especie,
     );
     if (!findSpecies) {
-      throw new NotFoundException('La especie especificada no existe');
+      throw new HttpException(
+        'La especie especificada no existe',
+        HttpStatus.NO_CONTENT,
+      );
     }
 
     const findUser = await this.userRepository.findByPk(id);
     if (!findUser) {
-      throw new NotFoundException('El usuario especificado no existe');
+      throw new HttpException(
+        'El usuario especificado no existe',
+        HttpStatus.NO_CONTENT,
+      );
     }
 
     const data = {
@@ -111,19 +119,28 @@ export class AnimalService {
   async updateAnimal(id: string, id_user: string, animalDto: AnimalDto) {
     const findAnimal = await this.animalRepository.findByPk(id);
     if (!findAnimal) {
-      throw new NotFoundException('El animal especificado no existe');
+      throw new HttpException(
+        'El animal especificado no existe',
+        HttpStatus.NO_CONTENT,
+      );
     }
 
     const findSpecies = await this.speciesRepository.findByPk(
       animalDto.id_especie,
     );
     if (!findSpecies) {
-      throw new NotFoundException('La especie especificada no existe');
+      throw new HttpException(
+        'La especie especificada no existe',
+        HttpStatus.NO_CONTENT,
+      );
     }
 
     const findUser = await this.userRepository.findByPk(id_user);
     if (!findUser) {
-      throw new NotFoundException('El usuario especificado no existe');
+      throw new HttpException(
+        'El usuario especificado no existe',
+        HttpStatus.NO_CONTENT,
+      );
     }
 
     const update = await this.animalRepository.update(animalDto, {
@@ -141,7 +158,10 @@ export class AnimalService {
   async deleteAnimal(id: string) {
     const findAnimal = await this.animalRepository.findByPk(id);
     if (!findAnimal) {
-      throw new NotFoundException('El animal especificado no existe');
+      throw new HttpException(
+        'El animal especificado no existe',
+        HttpStatus.NO_CONTENT,
+      );
     }
 
     await this.commentRepository.destroy({

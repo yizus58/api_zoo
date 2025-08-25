@@ -1,11 +1,11 @@
 import {
-  Controller,
-  Post,
   Body,
-  ValidationPipe,
-  UseGuards,
+  Controller,
   Get,
+  Post,
   Request,
+  UseGuards,
+  ValidationPipe,
 } from '@nestjs/common';
 import { UserService } from '../services/user.service';
 import { CreateUserDto } from '../dto/auth.dto';
@@ -32,6 +32,7 @@ export class UserController {
   }
 
   @Get('profile')
+  @Roles(UserRole.ADMIN || UserRole.USUARIO)
   async getProfile(@Request() req) {
     return await this.userService.findById(req.user.id);
   }
