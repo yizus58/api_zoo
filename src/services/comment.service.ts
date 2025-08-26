@@ -14,7 +14,7 @@ import { UserRole } from '../types/user.types';
 interface CommentWithAnimalAndUser {
   comentario: string;
   id_animal: string;
-  id_user_created: string;
+  id_user: string;
   fecha: Date;
   id_comentario_principal?: string;
 }
@@ -33,7 +33,7 @@ export class CommentService {
   async getAllComments() {
     const findComments = await this.commentRepository.findAll({
       attributes: {
-        exclude: ['id_animal', 'id_user_created', 'id_comentario_principal'],
+        exclude: ['id_animal', 'id_user', 'id_comentario_principal'],
       },
       include: [
         {
@@ -87,7 +87,7 @@ export class CommentService {
     const findComments = await this.commentRepository.findAll({
       where: { id_animal: animalId, id_comentario_principal: null },
       attributes: {
-        exclude: ['id_animal', 'id_user_created', 'id_comentario_principal'],
+        exclude: ['id_animal', 'id_user', 'id_comentario_principal'],
       },
       include: [
         {
@@ -140,7 +140,7 @@ export class CommentService {
     const data: CommentWithAnimalAndUser = {
       comentario: commentDto.comentario,
       id_animal: commentDto.id_animal,
-      id_user_created: id,
+      id_user: id,
       fecha: new Date(),
     };
 
@@ -205,7 +205,7 @@ export class CommentService {
       }
     }
 
-    if (id_user !== findComment.id_user_created) {
+    if (id_user !== findComment.id_user) {
       throw new HttpException(
         'No puede modificar este comentario',
         HttpStatus.UNAUTHORIZED,
@@ -244,7 +244,7 @@ export class CommentService {
     if (
       findUser.role == UserRole.ADMIN ||
       findUser.role == UserRole.EMPLEADO ||
-      id_user == findComment.id_user_created
+      id_user == findComment.id_user
     ) {
       const deleteComment = await this.commentRepository.destroy({
         where: { id },

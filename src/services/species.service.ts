@@ -20,7 +20,7 @@ export class SpeciesService {
       include: [
         {
           model: Animal,
-          attributes: { exclude: ['id_especie', 'id_user_created'] },
+          attributes: { exclude: ['id_especie', 'id_user'] },
         },
       ],
     });
@@ -41,7 +41,7 @@ export class SpeciesService {
       include: [
         {
           model: Animal,
-          attributes: { exclude: ['id_especie', 'id_user_created'] },
+          attributes: { exclude: ['id_especie', 'id_user'] },
         },
       ],
     });

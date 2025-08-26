@@ -21,7 +21,7 @@ export class AnimalService {
 
   async getAnimalById(id: string) {
     const findAnimal = await this.animalRepository.findByPk(id, {
-      attributes: { exclude: ['id_especie', 'id_user_created'] },
+      attributes: { exclude: ['id_especie', 'id_user'] },
       include: [
         {
           model: Species,
@@ -46,7 +46,7 @@ export class AnimalService {
 
   async getAllAnimals() {
     const findAnimals = await this.animalRepository.findAll({
-      attributes: { exclude: ['id_especie', 'id_user_created'] },
+      attributes: { exclude: ['id_especie', 'id_user'] },
       include: [
         {
           model: Species,
@@ -72,6 +72,7 @@ export class AnimalService {
   }
 
   async createAnimal(id: string, animalDto: AnimalDto) {
+    const date = new Date();
     const findAnimal = await this.animalRepository.findOne({
       where: { nombre: animalDto.nombre },
     });
@@ -104,7 +105,8 @@ export class AnimalService {
     const data = {
       nombre: animalDto.nombre,
       id_especie: animalDto.id_especie,
-      id_user_created: id,
+      id_user: id,
+      fecha: date,
     };
 
     const save = await this.animalRepository.create(data);

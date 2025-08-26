@@ -125,7 +125,7 @@ export class IndicatorsService {
     for (const animal of animals) {
       const comments = await this.commentRepository.findAll({
         where: { id_animal: animal.id },
-        attributes: ['id', 'comentario', 'id_user_created', 'fecha'],
+        attributes: ['id', 'comentario', 'id_user', 'fecha'],
         include: withUser
           ? [
               {

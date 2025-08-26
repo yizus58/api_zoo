@@ -14,6 +14,7 @@ import {
 import { Species } from './species.model';
 import { User } from './user.model';
 import { Comment } from './comment.model';
+import { IsDate, IsOptional } from 'class-validator';
 
 @Table({
   tableName: 'animals',
@@ -41,7 +42,11 @@ export class Animal extends Model<Animal> {
   @Column({
     type: DataType.UUID,
   })
-  declare id_user_created: string;
+  declare id_user: string;
+
+  @AllowNull(false)
+  @Column(DataType.DATE)
+  declare fecha: Date;
 
   @BelongsTo(() => Species)
   declare species: Species;

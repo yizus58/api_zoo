@@ -22,7 +22,7 @@ export class ZoneService {
           include: [
             {
               model: Animal,
-              attributes: { exclude: ['id_especie', 'id_user_created'] },
+              attributes: { exclude: ['id_especie', 'id_user'] },
             },
           ],
         },
@@ -48,11 +48,11 @@ export class ZoneService {
           include: [
             {
               model: Animal,
-              attributes: { exclude: ['id_especie', 'id_user_created'] },
+              attributes: { exclude: ['id_especie', 'id_user'] },
               include: [
                 {
                   model: Animal,
-                  attributes: { exclude: ['id_especie', 'id_user_created'] },
+                  attributes: { exclude: ['id_especie', 'id_user'] },
                 },
               ],
             },
@@ -118,7 +118,7 @@ export class ZoneService {
           include: [
             {
               model: Animal,
-              attributes: { exclude: ['id_especie', 'id_user_created'] },
+              attributes: { exclude: ['id_especie', 'id_user'] },
             },
           ],
         },

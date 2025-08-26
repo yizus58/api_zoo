@@ -23,5 +23,5 @@ export class CommentDto {
 
   @IsOptional()
   @IsDate()
-  fecha_creacion?: Date;
+  fecha?: Date;
 }

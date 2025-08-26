@@ -20,7 +20,7 @@ export interface Comment {
 export interface Animal {
   id: string;
   nombre: string;
-  id_user_created: string;
+  id_user: string;
   userCreated?: UserInfo;
   comentarios: Comment[];
 }

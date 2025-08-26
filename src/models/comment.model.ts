@@ -38,7 +38,7 @@ export class Comment extends Model<Comment> {
   @Column({
     type: DataType.UUID,
   })
-  declare id_user_created: string;
+  declare id_user: string;
 
   @ForeignKey(() => Comment)
   @AllowNull(true)
@@ -55,7 +55,7 @@ export class Comment extends Model<Comment> {
   @BelongsTo(() => Animal, { foreignKey: 'id_animal' })
   declare animal: Animal;
 
-  @BelongsTo(() => User, { foreignKey: 'id_user_created' })
+  @BelongsTo(() => User, { foreignKey: 'id_user' })
   declare userCreated: User;
 
   @BelongsTo(() => Comment, { foreignKey: 'id_comentario_principal' })

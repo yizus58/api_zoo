@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsString, MinLength, IsUUID } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  IsUUID,
+  IsOptional,
+  IsDate,
+} from 'class-validator';
 
 export class AnimalDto {
   @IsNotEmpty()
@@ -9,4 +16,8 @@ export class AnimalDto {
   @IsNotEmpty()
   @IsUUID()
   id_especie: string;
+
+  @IsOptional()
+  @IsDate()
+  fecha?: Date;
 }
