@@ -5,6 +5,11 @@ import { IndicatorsService } from '../services/indicators.services';
 export class IndicatorsController {
   constructor(private readonly indicatorService: IndicatorsService) {}
 
+  @Get('/query/:id')
+  async findAllQuery(@Param('id') id: string) {
+    return this.indicatorService.findAllQuery(id);
+  }
+
   @Get('total-animales')
   async totalAnimalsByArea() {
     const id = null;
@@ -40,8 +45,8 @@ export class IndicatorsController {
     return this.indicatorService.getAverageComment();
   }
 
-  @Get(':id')
-  async findAllQuery(@Param('id') id: string) {
-    return this.indicatorService.findAllQuery(id);
+  @Get('reporte-animales')
+  async animalsCreatedToDay() {
+    return this.indicatorService.findAnimalsToDay();
   }
 }

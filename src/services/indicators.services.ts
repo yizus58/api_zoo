@@ -397,4 +397,56 @@ export class IndicatorsService {
       data,
     };
   }
+
+  async findAnimalsToDay() {
+    const startOfDay = new Date();
+    startOfDay.setUTCHours(0, 0, 0, 0);
+
+    const endOfDay = new Date();
+    endOfDay.setUTCHours(23, 59, 59, 999);
+
+    const animals = await this.animalRepository.findAll({
+      attributes: { exclude: ['id', 'id_especie'] },
+      include: [
+        {
+          model: Species,
+          as: 'species',
+          attributes: { exclude: ['id_area'] },
+          include: [
+            {
+              model: Zone,
+              as: 'zone',
+            },
+          ],
+        },
+      ],
+      where: {
+        fecha: {
+          [Op.gte]: startOfDay,
+          [Op.lte]: endOfDay,
+        },
+      },
+    });
+
+    return animals.map((animal) => {
+      const animalJson = animal.toJSON();
+      return {
+        nombre: animalJson.nombre,
+        id_usuario: animalJson.id_user,
+        fecha: animalJson.fecha,
+        especies: animalJson.species
+          ? {
+              id: animalJson.species.id,
+              nombre: animalJson.species.nombre,
+              area: animalJson.species.zone
+                ? {
+                    id: animalJson.species.zone.id,
+                    nombre: animalJson.species.zone.nombre,
+                  }
+                : [],
+            }
+          : [],
+      };
+    });
+  }
 }
