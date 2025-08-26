@@ -11,6 +11,7 @@ import { UserRole } from '../types/user.types';
 
 @Table({
   tableName: 'users',
+  timestamps: false,
 })
 export class User extends Model<User> {
   @PrimaryKey

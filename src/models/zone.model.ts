@@ -13,6 +13,7 @@ import { Species } from './species.model';
 
 @Table({
   tableName: 'areas',
+  timestamps: false,
 })
 export class Zone extends Model<Zone> {
   @PrimaryKey

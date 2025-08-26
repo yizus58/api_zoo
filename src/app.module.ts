@@ -11,11 +11,13 @@ import { AnimalModule } from './modules/animal.module';
 import { CommentModule } from './modules/comment.module';
 import { IndicatorsModule } from './modules/indicators.module';
 
+const environment = process.env.NODE_ENV;
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: environment ? '.env' + '.' + environment : '.env',
     }),
     DatabaseModule,
     UserModule,

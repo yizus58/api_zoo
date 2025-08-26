@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { DatabaseInitService } from './services/database-init.service';
+import { SeederService } from './services/seeder.service';
 
 async function bootstrap() {
   const startTime = Date.now();
@@ -11,8 +12,24 @@ async function bootstrap() {
     const databaseInitService = new DatabaseInitService(configService);
     await databaseInitService.initializeDatabase();
 
-    if (configService.get<string>('NODE_ENV') === 'development') {
+    const nodeEnv = configService.get<string>('NODE_ENV');
+    console.log(`🏁 Iniciando el entorno de ejecución: ${nodeEnv}`);
+
+    if (
+      nodeEnv === 'development' ||
+      nodeEnv === 'test' ||
+      nodeEnv === 'local'
+    ) {
       await databaseInitService.syncModels();
+
+      const seederService = new SeederService(configService, databaseInitService);
+      const shouldRun = await seederService.shouldRunSeeder();
+
+      if (shouldRun) {
+        await seederService.runSeeder();
+      } else {
+        console.log('🌱 Seeder ya ejecutado anteriormente, omitiendo...');
+      }
     }
   } catch (error) {
     console.error('❌ Error al inicializar la base de datos:', error.message);

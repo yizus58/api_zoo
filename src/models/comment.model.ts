@@ -15,6 +15,7 @@ import { User } from './user.model';
 
 @Table({
   tableName: 'comments',
+  timestamps: false,
 })
 export class Comment extends Model<Comment> {
   @PrimaryKey
@@ -42,7 +43,6 @@ export class Comment extends Model<Comment> {
 
   @ForeignKey(() => Comment)
   @AllowNull(true)
-  @Default(null)
   @Column({
     type: DataType.UUID,
   })

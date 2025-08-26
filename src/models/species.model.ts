@@ -16,6 +16,7 @@ import { Animal } from './animal.model';
 
 @Table({
   tableName: 'species',
+  timestamps: false,
 })
 export class Species extends Model<Species> {
   @PrimaryKey

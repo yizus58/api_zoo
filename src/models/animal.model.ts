@@ -17,6 +17,7 @@ import { Comment } from './comment.model';
 
 @Table({
   tableName: 'animals',
+  timestamps: false,
 })
 export class Animal extends Model<Animal> {
   @PrimaryKey

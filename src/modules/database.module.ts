@@ -24,7 +24,7 @@ import { DatabaseInitService } from '../services/database-init.service';
           autoLoadModels: true,
           synchronize: !isProduction,
           sync: isDevelopment ? { force: false, alter: true } : {},
-          logging: isDevelopment ? console.log : false,
+          logging: false,
           define: {
             timestamps: false,
           },
