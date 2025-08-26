@@ -6,6 +6,12 @@ import { User } from '../models/user.model';
 import { Comment } from '../models/comment.model';
 import { Zone } from '../models/zone.model';
 import { Op } from 'sequelize';
+import {
+  AnimalSpeciesIndicator,
+  ZoneIndicator,
+  CommentStatsResponse,
+  CommentAnalysisResponse,
+} from '../types/query.types';
 
 @Injectable()
 export class IndicatorsService {
@@ -54,7 +60,9 @@ export class IndicatorsService {
     });
   }
 
-  async getTotalAnimalsSpecies(id: string | null) {
+  async getTotalAnimalsSpecies(
+    id: string | null,
+  ): Promise<AnimalSpeciesIndicator[]> {
     const findSpecies = await this.findAnimalsSpecies(id);
 
     if (findSpecies.length === 0) {
@@ -65,11 +73,7 @@ export class IndicatorsService {
     }
 
     const speciesList = findSpecies as Array<Species & { animals: Animal[] }>;
-    const result: Array<{
-      id: string;
-      nombre: string;
-      'total animals': number;
-    }> = speciesList.map((sp) => ({
+    const result: AnimalSpeciesIndicator[] = speciesList.map((sp) => ({
       id: sp.id as unknown as string,
       nombre: ((sp as any).name ?? (sp as any).nombre) as string,
       'total animals': (sp.animals ?? []).length,
@@ -78,7 +82,9 @@ export class IndicatorsService {
     return result;
   }
 
-  async getTotalAnimalsByArea(id: string | null) {
+  async getTotalAnimalsByArea(
+    id: string | null,
+  ): Promise<ZoneIndicator[] | Omit<ZoneIndicator, 'id'>[]> {
     const findArea = await this.findAnimalsZones(id);
 
     if (findArea.length === 0) {
@@ -89,11 +95,7 @@ export class IndicatorsService {
       Zone & { species: Array<Species & { animals: Animal[] }> }
     >;
 
-    const result: Array<{
-      id: string;
-      name: string;
-      'total animals': number;
-    }> = zones.map((area) => {
+    const result: ZoneIndicator[] = zones.map((area) => {
       const totalAnimals = (area.species || []).reduce(
         (acc, sp) => acc + (sp.animals || []).length,
         0,
@@ -144,7 +146,9 @@ export class IndicatorsService {
     return result;
   }
 
-  async getAverageCommentBySpecies(id: string | null) {
+  async getAverageCommentBySpecies(
+    id: string | null,
+  ): Promise<CommentStatsResponse> {
     const find = await this.findCommentsAnimals(id);
 
     if (find.length === 0) {
@@ -183,7 +187,7 @@ export class IndicatorsService {
     };
   }
 
-  async getAverageComment() {
+  async getAverageComment(): Promise<CommentAnalysisResponse> {
     const findComments = await this.commentRepository.findAll({
       attributes: [
         'id',
@@ -286,138 +290,111 @@ export class IndicatorsService {
     };
   }
 
-  async findZoneQuery(like: string): Promise<Array<{
-    id: string;
-    nombre: string;
-    especies: Array<{
-      id: string;
-      nombre: string;
-      animales: Array<{
-        id: string;
-        nombre: string;
-        id_user_created: string;
-        userCreated?: { email: string };
-        comentarios: Array<{
-          id: string;
-          comentario: string;
-          fecha: Date;
-          userCreated?: { email: string };
-          respuestas: Array<{
-            id: string;
-            comentario: string;
-            fecha: Date;
-            userCreated?: { email: string };
-          }>;
-        }>;
-      }>;
-    }>;
-  }> | null> {
+  async findZoneQuery(like: string) {
     const zonesWithSpecies = await this.zoneRepository.findAll({
       where: { nombre: { [Op.iLike]: `%${like}%` } },
-      attributes: ['id', 'nombre'],
-      include: [
-        {
-          model: Species,
-          attributes: ['id', 'nombre'],
-          include: [
-            {
-              model: Animal,
-              attributes: ['id', 'nombre', 'id_user_created'],
-              include: [
-                {
-                  model: User,
-                  as: 'userCreated',
-                  attributes: ['email'],
-                },
-                {
-                  model: Comment,
-                  as: 'comments',
-                  attributes: ['id', 'comentario', 'fecha', 'id_user_created'],
-                  where: {
-                    id_comentario_principal: null,
-                  },
-                  required: false,
-                  include: [
-                    {
-                      model: User,
-                      as: 'userCreated',
-                      attributes: ['email'],
-                    },
-                    {
-                      model: Comment,
-                      as: 'respuestas',
-                      attributes: [
-                        'id',
-                        'comentario',
-                        'fecha',
-                        'id_user_created',
-                      ],
-                      include: [
-                        {
-                          model: User,
-                          as: 'userCreated',
-                          attributes: ['email'],
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ],
     });
 
     if (zonesWithSpecies.length === 0) {
       return null;
     }
+    return zonesWithSpecies;
+  }
 
-    return zonesWithSpecies.map((zone) => ({
-      id: zone.id,
-      nombre: zone.nombre,
-      especies:
-        (zone as any).species?.map((species: any) => ({
-          id: species.id as string,
-          nombre: species.nombre,
-          animales:
-            species.animals?.map((animal: any) => ({
-              id: animal.id as string,
-              nombre: animal.nombre,
-              id_user_created: animal.id_user_created,
-              ...(animal.userCreated && {
-                userCreated: { email: animal.userCreated.email },
-              }),
-              comentarios:
-                animal.comments?.map((comment: any) => ({
-                  id: comment.id as string,
-                  comentario: comment.comentario,
-                  fecha: comment.fecha,
-                  ...(comment.userCreated && {
-                    userCreated: { email: comment.userCreated.email },
-                  }),
-                  respuestas:
-                    comment.respuestas?.map((respuesta: any) => ({
-                      id: respuesta.id as string,
-                      comentario: respuesta.comentario,
-                      fecha: respuesta.fecha,
-                      ...(respuesta.userCreated && {
-                        userCreated: { email: respuesta.userCreated.email },
-                      }),
-                    })) || [],
-                })) || [],
-            })) || [],
-        })) || [],
-    }));
+  async findSpeciesQuery(like: string) {
+    const speciesQuery = await this.speciesRepository.findAll({
+      where: { nombre: { [Op.iLike]: `%${like}%` } },
+    });
+
+    if (speciesQuery.length === 0) {
+      return null;
+    }
+
+    return speciesQuery;
+  }
+
+  async findAnimalsQuery(like: string) {
+    const animalsQuery = await this.animalRepository.findAll({
+      where: { nombre: { [Op.iLike]: `%${like}%` } },
+    });
+
+    if (animalsQuery.length === 0) {
+      return null;
+    }
+
+    return animalsQuery;
+  }
+
+  async findCommentsWithOutResponseQuery(like: string) {
+    const commentayQuery = await this.commentRepository.findAll({
+      where: {
+        [Op.and]: [
+          {
+            comentario: { [Op.iLike]: `%${like}%` },
+          },
+          {
+            id_comentario_principal: { [Op.is]: null },
+          },
+        ],
+      },
+    });
+
+    if (commentayQuery.length === 0) {
+      return null;
+    }
+
+    return commentayQuery;
+  }
+
+  async findCommentsResponseQuery(like: string) {
+    const commentayQuery = await this.commentRepository.findAll({
+      where: {
+        [Op.and]: [
+          {
+            comentario: { [Op.iLike]: `%${like}%` },
+          },
+          {
+            id_comentario_principal: { [Op.ne]: null },
+          },
+        ],
+      },
+    });
+
+    if (commentayQuery.length === 0) {
+      return null;
+    }
+
+    return commentayQuery;
   }
 
   async findAllQuery(searchTerm: string) {
-    const data = await this.findZoneQuery(searchTerm);
+    const findZone = await this.findZoneQuery(searchTerm);
+    const findSpecies = await this.findSpeciesQuery(searchTerm);
+    const findAnimal = await this.findAnimalsQuery(searchTerm);
+    const findCommentary =
+      await this.findCommentsWithOutResponseQuery(searchTerm);
+    const findResponseComment =
+      await this.findCommentsResponseQuery(searchTerm);
+
+    const data = {
+      total_resultado:
+        (findZone != null ? findZone.length : 0) +
+        (findSpecies != null ? findSpecies.length : 0) +
+        (findAnimal != null ? findAnimal.length : 0) +
+        (findCommentary != null ? findCommentary.length : 0) +
+        (findResponseComment != null ? findResponseComment.length : 0),
+      resultado: {
+        zona: findZone,
+        especie: findSpecies,
+        animal: findAnimal,
+        comentario: findCommentary,
+        respuesta: findResponseComment,
+      },
+    };
 
     return {
       termino_busqueda: searchTerm,
-      total_resultados: data?.length || 0,
-      resultados: data || [],
+      data,
     };
   }
 }
