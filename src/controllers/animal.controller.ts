@@ -47,7 +47,7 @@ export class AnimalController {
     return await this.animalService.deleteAnimal(id);
   }
 
-  @Get('all')
+  @Get()
   async getAllAnimals() {
     return this.animalService.getAllAnimals();
   }

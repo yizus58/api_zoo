@@ -28,7 +28,7 @@ export class ZoneController {
     return await this.zoneService.createArea(zoneDto);
   }
 
-  @Get('all')
+  @Get()
   async getAllZones() {
     return this.zoneService.getAllAreas();
   }

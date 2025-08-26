@@ -42,12 +42,12 @@ export class CommentController {
     return await this.commentService.deleteComment(req.user.id, id);
   }
 
-  @Get('all')
+  @Get()
   async getAllComments() {
     return this.commentService.getAllComments();
   }
 
-  @Get('animal/:animalId')
+  @Get(':animalId')
   async getCommentsByAnimal(@Param('animalId') animalId: string) {
     return this.commentService.getCommentsByAnimal(animalId);
   }

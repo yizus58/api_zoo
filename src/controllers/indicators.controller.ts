@@ -1,13 +1,13 @@
-import { Controller, Get, Param, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Param, Query, ValidationPipe } from '@nestjs/common';
 import { IndicatorsService } from '../services/indicators.services';
 
 @Controller('indicadores')
 export class IndicatorsController {
   constructor(private readonly indicatorService: IndicatorsService) {}
 
-  @Get('/query/:id')
-  async findAllQuery(@Param('id') id: string) {
-    return this.indicatorService.findAllQuery(id);
+  @Get('query')
+  async findAllQuery(@Query('search') search: string) {
+    return this.indicatorService.findAllQuery(search);
   }
 
   @Get('total-animales')

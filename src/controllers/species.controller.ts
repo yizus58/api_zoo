@@ -44,7 +44,7 @@ export class SpeciesController {
     return await this.speciesService.deleteSpecies(id);
   }
 
-  @Get('all')
+  @Get()
   async getAllSpecies() {
     return this.speciesService.getAllSpecies();
   }
