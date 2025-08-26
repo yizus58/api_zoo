@@ -163,9 +163,12 @@ export class IndicatorsService {
       0,
     );
 
-    const animalsWithPercentage = find.map((animal) => {
+    const animalsWithComments = find.filter(animal => animal.comments.length > 0);
+    const animalsWithoutComments = find.filter(animal => animal.comments.length === 0);
+
+    const animalsWithPercentage = animalsWithComments.map((animal) => {
       const commentCount = animal.comments.length;
-      const percentage = ((commentCount / total_comments) * 100).toFixed(2);
+      const percentage = total_comments > 0 ? ((commentCount / total_comments) * 100).toFixed(2) : '0.00';
 
       return {
         id: animal.id,
@@ -176,14 +179,15 @@ export class IndicatorsService {
       };
     });
 
-    const sortedResults = animalsWithPercentage.sort(
+    const sortedResults = [...animalsWithPercentage].sort(
       (a, b) => b.porcentaje_comentarios - a.porcentaje_comentarios,
     );
 
     return {
       animales: sortedResults,
       total_comentarios: total_comments,
-      total_animales_con_comentarios: find.length,
+      total_animales_con_comentarios: animalsWithComments.length,
+      total_animales_sin_comentarios: animalsWithoutComments.length,
     };
   }
 

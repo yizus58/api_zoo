@@ -28,10 +28,7 @@ export const validateJWT = (
   }
 
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_KEY as string,
-    ) as JwtPayload;
+    const decoded = jwt.verify(token, process.env.JWT_KEY) as JwtPayload;
     const { uid } = decoded;
 
     req.uid = uid;

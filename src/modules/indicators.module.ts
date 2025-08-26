@@ -10,7 +10,6 @@ import { RolesGuard } from '../guards/roles.guard';
 import { IndicatorsController } from '../controllers/indicators.controller';
 import { IndicatorsService } from '../services/indicators.services';
 
-
 @Module({
   imports: [
     SequelizeModule.forFeature([Animal, Comment, Species, User, Zone]),

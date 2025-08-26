@@ -14,8 +14,6 @@ import { CommentService } from '../services/comment.service';
 import { CommentDto } from '../dto/comment.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
-import { Roles } from '../decorators/roles.decorator';
-import { UserRole } from '../types/user.types';
 
 @Controller('comentarios')
 @UseGuards(JwtAuthGuard, RolesGuard)

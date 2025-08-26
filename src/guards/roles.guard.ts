@@ -9,7 +9,7 @@ import { UserRole } from '../types/user.types';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
     const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(

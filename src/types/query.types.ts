@@ -63,6 +63,7 @@ export interface CommentStatsResponse {
   animales: AnimalCommentStats[];
   total_comentarios: number;
   total_animales_con_comentarios: number;
+  total_animales_sin_comentarios: number;
 }
 
 export interface CommentCategoryStats {

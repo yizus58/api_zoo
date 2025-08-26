@@ -5,7 +5,7 @@ import { Sequelize } from 'sequelize-typescript';
 
 @Injectable()
 export class DatabaseInitService {
-  constructor(private configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) {}
 
   async initializeDatabase(): Promise<void> {
     const dbName = this.configService.get<string>('DB_NAME');

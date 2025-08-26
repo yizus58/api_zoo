@@ -14,7 +14,6 @@ import {
 import { Species } from './species.model';
 import { User } from './user.model';
 import { Comment } from './comment.model';
-import { IsDate, IsOptional } from 'class-validator';
 
 @Table({
   tableName: 'animals',

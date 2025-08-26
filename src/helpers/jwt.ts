@@ -7,13 +7,17 @@ interface JwtPayload {
   role: UserRole;
 }
 
-export const generateJWT = (uid: string, email: string, role: UserRole): Promise<string> => {
+export const generateJWT = (
+  uid: string,
+  email: string,
+  role: UserRole,
+): Promise<string> => {
   return new Promise((resolve, reject) => {
     const payload: JwtPayload = { uid, email, role };
 
     jwt.sign(
       payload,
-      process.env.JWT_KEY as string,
+      process.env.JWT_KEY,
       {
         expiresIn: '24h',
       },
@@ -21,7 +25,7 @@ export const generateJWT = (uid: string, email: string, role: UserRole): Promise
         if (err) {
           reject(new Error('No se pudo generar el JWT'));
         } else {
-          resolve(token as string);
+          resolve(token);
         }
       },
     );
@@ -30,10 +34,7 @@ export const generateJWT = (uid: string, email: string, role: UserRole): Promise
 
 export const checkJWT = (token: string = ''): [boolean, JwtPayload | null] => {
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_KEY as string,
-    ) as JwtPayload;
+    const decoded = jwt.verify(token, process.env.JWT_KEY) as JwtPayload;
     return [true, decoded];
   } catch (error) {
     console.error(error);
