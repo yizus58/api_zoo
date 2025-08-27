@@ -133,18 +133,19 @@ export class SeederService {
   ): Promise<Animal[]> {
     console.log('🐾 Creando animales aleatorios...');
     const allAnimals: Animal[] = [];
+    const empleadoUsers = allUsers.filter(user => user.role === UserRole.EMPLEADO);
 
     for (const species of allSpecies) {
       for (let i = 0; i < this.ANIMALS_PER_SPECIES; i++) {
         const randomUser =
-          allUsers[Math.floor(Math.random() * allUsers.length)];
+          empleadoUsers[Math.floor(Math.random() * empleadoUsers.length)];
         const animal = await Animal.create({
           id: uuidv4(),
           nombre: `${randFirstName()} ${randLastName()}`.substring(0, 50),
           id_especie: species.id,
           id_user: randomUser.id,
           fecha: randBetweenDate({
-            from: new Date('2020-01-01'),
+            from: new Date('2025-08-27'),
             to: new Date(),
           }),
         });
@@ -159,11 +160,12 @@ export class SeederService {
     console.log('💬 Creando comentarios aleatorios...');
     let totalComments = 0;
     const AllCommentsResponse = [];
+    const empleadoUsers = allUsers.filter(user => user.role === UserRole.EMPLEADO);
 
     for (const animal of allAnimals) {
       for (let i = 0; i < this.COMMENTS_PER_ANIMAL; i++) {
         const randomUser =
-          allUsers[Math.floor(Math.random() * allUsers.length)];
+          empleadoUsers[Math.floor(Math.random() * empleadoUsers.length)];
         const comment = await Comment.create({
           id: uuidv4(),
           comentario: randParagraph({
@@ -196,6 +198,7 @@ export class SeederService {
         comentario: randParagraph({
           length: randNumber({ min: 1, max: 3 }),
         }).join(' '),
+        id_animal: comment.id_animal,
         id_comentario_principal: comment.id,
         id_user: comment.id_user,
         fecha: randBetweenDate({

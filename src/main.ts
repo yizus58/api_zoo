@@ -3,6 +3,8 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { DatabaseInitService } from './services/database-init.service';
 import { SeederService } from './services/seeder.service';
+import { initCronJobs } from './config/cron';
+import { CronService } from './services/cron.service';
 
 async function bootstrap() {
   const startTime = Date.now();
@@ -58,6 +60,17 @@ async function bootstrap() {
 
   console.log(`🚀 Servidor iniciado en http://localhost:${port}`);
   console.log(`⚡ Tiempo de inicio: ${startupTime}ms`);
+
+  try {
+    const cronService = app.get(CronService);
+    initCronJobs(cronService);
+    console.log(
+      '⏰ Cron jobs inicializados correctamente - ejecutándose automáticamente',
+    );
+  } catch (error) {
+    console.error('❌ Error al inicializar el Cron Jobs:', error);
+    process.exit(1);
+  }
 }
 
 bootstrap().catch((error) => {

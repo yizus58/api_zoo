@@ -10,6 +10,7 @@ import { SpeciesModule } from './modules/species.module';
 import { AnimalModule } from './modules/animal.module';
 import { CommentModule } from './modules/comment.module';
 import { IndicatorsModule } from './modules/indicators.module';
+import { CronModule } from './modules/cron.module';
 
 const environment = process.env.NODE_ENV;
 
@@ -27,6 +28,7 @@ const environment = process.env.NODE_ENV;
     AnimalModule,
     CommentModule,
     IndicatorsModule,
+    CronModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -2,6 +2,10 @@ import { Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { User } from '../models/user.model';
+import { Animal } from '../models/animal.model';
+import { Species } from '../models/species.model';
+import { Comment } from '../models/comment.model';
+import { Zone } from '../models/zone.model';
 import { DatabaseInitService } from '../services/database-init.service';
 
 @Module({
@@ -59,7 +63,7 @@ import { DatabaseInitService } from '../services/database-init.service';
       },
       inject: [ConfigService],
     }),
-    SequelizeModule.forFeature([User]),
+    SequelizeModule.forFeature([User, Animal, Species, Comment, Zone]),
   ],
   providers: [DatabaseInitService],
   exports: [SequelizeModule, DatabaseInitService],

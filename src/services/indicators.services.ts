@@ -453,4 +453,72 @@ export class IndicatorsService {
       };
     });
   }
+
+  async animalsCommentPerDay() {
+    const userAnimalComment = [];
+    const startOfDay = new Date();
+    startOfDay.setUTCHours(0, 0, 0, 0);
+
+    const endOfDay = new Date();
+    endOfDay.setUTCHours(23, 59, 59, 999);
+    const findAnimalsComment = await this.commentRepository.findAll({
+      where: {
+        fecha: {
+          [Op.gte]: startOfDay,
+          [Op.lte]: endOfDay,
+        },
+      },
+      include: [
+        {
+          model: Comment,
+          as: 'respuestas',
+          attributes: ['id', 'comentario', 'fecha'],
+        },
+      ],
+    });
+
+    if (findAnimalsComment.length == 0) {
+      console.error('No hay comentarios en la base de datos');
+      return;
+    }
+
+    const animalsComments = await Promise.all(
+      findAnimalsComment.map(async (comment) => {
+        const animal = await this.animalRepository.findByPk(comment.id_animal);
+        const species = await this.speciesRepository.findByPk(
+          animal.id_especie,
+        );
+        const zone = await this.zoneRepository.findByPk(species.id_area);
+        const user = await this.userRepository.findByPk(comment.id_user);
+
+        const commentData = {
+          zona: zone.nombre,
+          specie: species.nombre,
+          animal: animal.nombre,
+          comentario: comment.comentario,
+          respuesta:
+            comment.respuestas && comment.respuestas.length > 0
+              ? comment.respuestas[0].comentario
+              : '',
+        };
+
+        const existingUserIndex = userAnimalComment.findIndex(
+          (item) => item.user === user.id,
+        );
+
+        if (existingUserIndex !== -1) {
+          userAnimalComment[existingUserIndex].data.push(commentData);
+        } else {
+          userAnimalComment.push({
+            user: user.id,
+            email: user.email,
+            data: [commentData],
+          });
+        }
+
+        return commentData;
+      }),
+    );
+    return { animalsComments, userAnimalComment };
+  }
 }

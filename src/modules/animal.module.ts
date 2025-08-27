@@ -1,19 +1,12 @@
 import { Module } from '@nestjs/common';
-import { SequelizeModule } from '@nestjs/sequelize';
-import { Animal } from '../models/animal.model';
-import { Species } from '../models/species.model';
-import { User } from '../models/user.model';
 import { AnimalController } from '../controllers/animal.controller';
 import { AnimalService } from '../services/animal.service';
 import { AuthModule } from './auth.module';
 import { RolesGuard } from '../guards/roles.guard';
-import { Comment } from '../models/comment.model';
+import { DatabaseModule } from './database.module';
 
 @Module({
-  imports: [
-    SequelizeModule.forFeature([Animal, Species, User, Comment]),
-    AuthModule,
-  ],
+  imports: [AuthModule, DatabaseModule],
   controllers: [AnimalController],
   providers: [AnimalService, RolesGuard],
   exports: [AnimalService],
