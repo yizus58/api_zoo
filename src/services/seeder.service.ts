@@ -164,8 +164,9 @@ export class SeederService {
 
     for (const animal of allAnimals) {
       for (let i = 0; i < this.COMMENTS_PER_ANIMAL; i++) {
+        const availableUsers = empleadoUsers.filter(user => user.id !== animal.id_user);
         const randomUser =
-          empleadoUsers[Math.floor(Math.random() * empleadoUsers.length)];
+          availableUsers[Math.floor(Math.random() * availableUsers.length)];
         const comment = await Comment.create({
           id: uuidv4(),
           comentario: randParagraph({
@@ -193,6 +194,8 @@ export class SeederService {
     let totalCommentsResponse = 0;
 
     for (const comment of allComments) {
+      const animalSave = await Animal.findByPk(comment.id_animal);
+
       await Comment.create({
         id: uuidv4(),
         comentario: randParagraph({
@@ -200,7 +203,7 @@ export class SeederService {
         }).join(' '),
         id_animal: comment.id_animal,
         id_comentario_principal: comment.id,
-        id_user: comment.id_user,
+        id_user: animalSave.id_user,
         fecha: randBetweenDate({
           from: comment.fecha,
           to: new Date(),

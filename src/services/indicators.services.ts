@@ -163,12 +163,19 @@ export class IndicatorsService {
       0,
     );
 
-    const animalsWithComments = find.filter(animal => animal.comments.length > 0);
-    const animalsWithoutComments = find.filter(animal => animal.comments.length === 0);
+    const animalsWithComments = find.filter(
+      (animal) => animal.comments.length > 0,
+    );
+    const animalsWithoutComments = find.filter(
+      (animal) => animal.comments.length === 0,
+    );
 
     const animalsWithPercentage = animalsWithComments.map((animal) => {
       const commentCount = animal.comments.length;
-      const percentage = total_comments > 0 ? ((commentCount / total_comments) * 100).toFixed(2) : '0.00';
+      const percentage =
+        total_comments > 0
+          ? ((commentCount / total_comments) * 100).toFixed(2)
+          : '0.00';
 
       return {
         id: animal.id,
@@ -456,6 +463,7 @@ export class IndicatorsService {
 
   async animalsCommentPerDay() {
     const userAnimalComment = [];
+    let userCommentResponse: User | null = null;
     const startOfDay = new Date();
     startOfDay.setUTCHours(0, 0, 0, 0);
 
@@ -472,7 +480,7 @@ export class IndicatorsService {
         {
           model: Comment,
           as: 'respuestas',
-          attributes: ['id', 'comentario', 'fecha'],
+          attributes: ['id', 'comentario', 'id_user', 'fecha'],
         },
       ],
     });
@@ -484,22 +492,59 @@ export class IndicatorsService {
 
     const animalsComments = await Promise.all(
       findAnimalsComment.map(async (comment) => {
+        const isResponse = findAnimalsComment.some(
+          (otherComment) =>
+            otherComment.respuestas &&
+            otherComment.respuestas.some(
+              (respuesta) => respuesta.id === comment.id,
+            ),
+        );
+
+        if (isResponse) {
+          return null;
+        }
+
         const animal = await this.animalRepository.findByPk(comment.id_animal);
         const species = await this.speciesRepository.findByPk(
           animal.id_especie,
         );
         const zone = await this.zoneRepository.findByPk(species.id_area);
         const user = await this.userRepository.findByPk(comment.id_user);
+        if (comment.respuestas[0].id_user !== null) {
+          userCommentResponse = await this.userRepository.findByPk(
+            comment.respuestas[0].id_user,
+          );
+        }
 
         const commentData = {
           zona: zone.nombre,
           specie: species.nombre,
           animal: animal.nombre,
-          comentario: comment.comentario,
-          respuesta:
-            comment.respuestas && comment.respuestas.length > 0
-              ? comment.respuestas[0].comentario
-              : '',
+          comentario: {
+            id: comment.id,
+            comentario: comment.comentario,
+            autor: user.email,
+            fecha: comment.fecha,
+            respuesta: {
+              id:
+                comment.respuestas && comment.respuestas.length > 0
+                  ? comment.respuestas[0].id
+                  : '',
+              comentario:
+                comment.respuestas && comment.respuestas.length > 0
+                  ? comment.respuestas[0].comentario
+                  : '',
+              autor: userCommentResponse ? userCommentResponse.email : '',
+              fecha:
+                comment.respuestas && comment.respuestas.length > 0
+                  ? comment.respuestas[0].fecha
+                  : '',
+              id_comentario_principal:
+                comment.respuestas && comment.respuestas.length > 0
+                  ? comment.respuestas[0].id_comentario_principal
+                  : '',
+            },
+          },
         };
 
         const existingUserIndex = userAnimalComment.findIndex(
@@ -519,6 +564,10 @@ export class IndicatorsService {
         return commentData;
       }),
     );
-    return { animalsComments, userAnimalComment };
+
+    const filteredAnimalsComments = animalsComments.filter(
+      (comment) => comment !== null,
+    );
+    return { animalsComments: filteredAnimalsComments, userAnimalComment };
   }
 }
