@@ -47,7 +47,7 @@ export class CronService {
         if (!buffer || typeof buffer === 'boolean') {
           console.log('ERROR al generar el buffer del Excel para S3');
           arrayErrors.push({ userId, error: 'Error al generar el buffer del Excel para S3' });
-          continue; // Saltar a la siguiente iteración si el buffer no es válido
+          continue;
         }
 
         let s3UploadResult = null;
@@ -59,7 +59,7 @@ export class CronService {
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
           s3UploadResult = await this.s3Service.uploadFile(
-            buffer as Buffer, // Cast explícito para TypeScript, ya que verificamos que no es boolean
+            buffer as Buffer,
             contentType,
             nameS3,
           );

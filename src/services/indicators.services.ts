@@ -1,11 +1,11 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Animal } from '../models/animal.model';
 import { Species } from '../models/species.model';
 import { User } from '../models/user.model';
 import { Comment } from '../models/comment.model';
 import { Zone } from '../models/zone.model';
-import { Op } from 'sequelize';
+import { Op, WhereOptions } from 'sequelize';
 import {
   AnimalSpeciesIndicator,
   ZoneIndicator,
@@ -13,8 +13,39 @@ import {
   CommentAnalysisResponse,
 } from '../types/query.types';
 
+interface AnimalCommentData {
+  zona: string;
+  specie: string;
+  animal: string;
+  comentario: {
+    id: string | number;
+    comentario: string;
+    autor: string;
+    fecha: Date;
+    respuesta?: {
+      id: string | number;
+      comentario: string;
+      autor: string;
+      fecha: Date;
+      id_comentario_principal?: string | number;
+    };
+  };
+}
+
+interface UserAnimalComment {
+  user: string;
+  email: string;
+  data: AnimalCommentData[];
+}
+
+interface DayRange {
+  startOfDay: Date;
+  endOfDay: Date;
+}
+
 @Injectable()
 export class IndicatorsService {
+  private readonly logger = new Logger(IndicatorsService.name);
   constructor(
     @InjectModel(Animal)
     private readonly animalRepository: typeof Animal,
@@ -27,6 +58,19 @@ export class IndicatorsService {
     @InjectModel(Zone)
     private readonly zoneRepository: typeof Zone,
   ) {}
+
+  /**
+   * Obtiene el rango de fechas para el día actual
+   */
+  private getDayRange(): DayRange {
+    const startOfDay = new Date();
+    startOfDay.setUTCHours(0, 0, 0, 0);
+
+    const endOfDay = new Date();
+    endOfDay.setUTCHours(23, 59, 59, 999);
+
+    return { startOfDay, endOfDay };
+  }
 
   async findAnimalsZones(id: string | null) {
     return await this.zoneRepository.findAll({
@@ -461,166 +505,240 @@ export class IndicatorsService {
     });
   }
 
-  async animalsCommentPerDay() {
-    const userAnimalComment = [];
-    let userCommentResponse: User | null = null;
-    const startOfDay = new Date();
-    startOfDay.setUTCHours(0, 0, 0, 0);
+  /**
+   * Obtiene comentarios de animales del día con todas las relaciones optimizadas
+   */
+  async animalsCommentPerDay(): Promise<{
+    animalsComments: AnimalCommentData[];
+    userAnimalComment: UserAnimalComment[];
+  }> {
+    try {
+      const { startOfDay, endOfDay } = this.getDayRange();
 
-    const endOfDay = new Date();
-    endOfDay.setUTCHours(23, 59, 59, 999);
-    const findAnimalsComment = await this.commentRepository.findAll({
-      where: {
-        fecha: {
-          [Op.gte]: startOfDay,
-          [Op.lte]: endOfDay,
+      const comments = await this.commentRepository.findAll({
+        where: {
+          fecha: {
+            [Op.gte]: startOfDay,
+            [Op.lte]: endOfDay,
+          },
         },
-      },
-      include: [
-        {
-          model: Comment,
-          as: 'respuestas',
-          attributes: ['id', 'comentario', 'id_user', 'fecha'],
-        },
-      ],
-    });
+        include: [
+          {
+            model: Comment,
+            as: 'respuestas',
+            attributes: ['id', 'comentario', 'id_user', 'fecha', 'id_comentario_principal'],
+            required: false,
+            include: [
+              {
+                model: User,
+                as: 'userCreated',
+                attributes: ['id', 'email'],
+                required: false,
+              },
+            ],
+          },
+          {
+            model: Animal,
+            as: 'animal',
+            attributes: ['id', 'nombre', 'id_user', 'id_especie'],
+            required: true,
+            include: [
+              {
+                model: Species,
+                as: 'species',
+                attributes: ['id', 'nombre', 'id_area'],
+                required: false,
+                include: [
+                  {
+                    model: Zone,
+                    as: 'zone',
+                    attributes: ['id', 'nombre'],
+                    required: false,
+                  },
+                ],
+              },
+              {
+                model: User,
+                as: 'userCreated',
+                attributes: ['id', 'email'],
+                required: false,
+              },
+            ],
+          },
+          {
+            model: User,
+            as: 'userCreated',
+            attributes: ['id', 'email'],
+            required: false,
+          },
+        ],
+        order: [['fecha', 'ASC']],
+      });
 
-    if (findAnimalsComment.length == 0) {
-      console.error('No hay comentarios en la base de datos');
-      return { animalsComments: [], userAnimalComment: [] };
+      if (comments.length === 0) {
+        this.logger.log('No hay comentarios para el día actual');
+        return { animalsComments: [], userAnimalComment: [] };
+      }
+
+      const { mainComments, responseComments } = this.categorizeComments(comments);
+
+      if (mainComments.length === 0) {
+        this.logger.log('No hay comentarios principales para el día actual');
+        return { animalsComments: [], userAnimalComment: [] };
+      }
+
+      const { processedComments, userCommentMap } = this.processCommentsData(
+        mainComments,
+        responseComments,
+      );
+
+      return {
+        animalsComments: processedComments,
+        userAnimalComment: Array.from(userCommentMap.values()),
+      };
+    } catch (error) {
+      this.logger.error(`Error al obtener comentarios del día: ${error.message}`);
+      throw new HttpException(
+        'Error interno al obtener comentarios del día',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-
-    const animalsComments = await Promise.all(
-      findAnimalsComment.map(async (comment) => {
-        const isResponse = findAnimalsComment.some((otherComment) =>
-          otherComment.respuestas?.some(
-            (respuesta) => respuesta.id === comment.id,
-          ),
-        );
-
-        if (isResponse) {
-          return null;
-        }
-
-        const animal = await this.animalRepository.findByPk(comment.id_animal);
-        const species = await this.speciesRepository.findByPk(
-          animal.id_especie,
-        );
-        const zone = await this.zoneRepository.findByPk(species.id_area);
-        const user = await this.userRepository.findByPk(comment.id_user);
-
-        if (
-          comment.respuestas &&
-          comment.respuestas.length > 0 &&
-          comment.respuestas[0].id_user !== null
-        ) {
-          userCommentResponse = await this.userRepository.findByPk(
-            comment.respuestas[0].id_user,
-          );
-        }
-        const commentData = await this.insertCommentArray(
-          zone,
-          species,
-          animal,
-          comment,
-          user,
-          userCommentResponse,
-        );
-
-        const animalOwner = await this.userRepository.findByPk(animal.id_user);
-
-        const existingUserIndex = userAnimalComment.findIndex(
-          (item) => item.user === animal.id_user,
-        );
-
-        if (existingUserIndex !== -1) {
-          userAnimalComment[existingUserIndex].data.push(commentData);
-        } else {
-          userAnimalComment.push({
-            user: animal.id_user,
-            email: animalOwner.email,
-            data: [commentData],
-          });
-        }
-        return commentData;
-      }),
-    );
-
-    const filteredAnimalsComments = animalsComments.filter(
-      (comment) => comment !== null,
-    );
-    console.log('ARRAY COMPLETE ', userAnimalComment);
-    return { animalsComments: filteredAnimalsComments, userAnimalComment };
   }
 
-  async insertCommentArray(
-    zone,
-    species,
-    animal,
-    comment,
-    user,
-    userCommentResponse,
-  ) {
-    if (comment.respuestas.length > 0) {
-      console.log('Comment Primary');
-      return {
-        zona: zone.nombre,
-        specie: species.nombre,
-        animal: animal.nombre,
-        comentario: {
-          id: comment.id,
-          comentario: comment.comentario,
-          autor: user.email,
-          fecha: comment.fecha,
-          respuesta: {
-            id:
-              comment.respuestas && comment.respuestas.length > 0
-                ? comment.respuestas[0].id
-                : '',
-            comentario:
-              comment.respuestas && comment.respuestas.length > 0
-                ? comment.respuestas[0].comentario
-                : '',
-            autor: userCommentResponse ? userCommentResponse.email : '',
-            fecha:
-              comment.respuestas && comment.respuestas.length > 0
-                ? comment.respuestas[0].fecha
-                : '',
-            id_comentario_principal:
-              comment.respuestas && comment.respuestas.length > 0
-                ? comment.respuestas[0].id_comentario_principal
-                : '',
-          },
-        },
-      };
-    } else {
-      console.log('Respuesta Comentario');
-      const commentary_id = comment.id;
-      const commentary = await this.commentRepository.findByPk(commentary_id);
-      const commentary_primary = await this.commentRepository.findByPk(
-        commentary.id_comentario_principal,
+  /**
+   * Categoriza los comentarios en principales y respuestas
+   */
+  private categorizeComments(comments: Comment[]): {
+    mainComments: Comment[];
+    responseComments: Comment[];
+  } {
+    const mainComments = comments.filter(
+      (comment) => !comment.id_comentario_principal,
+    );
+
+    const responseComments = comments.filter(
+      (comment) => comment.id_comentario_principal,
+    );
+
+    return { mainComments, responseComments };
+  }
+
+  /**
+   * Procesa los datos de comentarios y los agrupa por usuario propietario
+   */
+  private processCommentsData(
+    mainComments: Comment[],
+    responseComments: Comment[],
+  ): {
+    processedComments: AnimalCommentData[];
+    userCommentMap: Map<string, UserAnimalComment>;
+  } {
+    const userCommentMap = new Map<string, UserAnimalComment>();
+    const processedComments: AnimalCommentData[] = [];
+
+    for (const comment of mainComments) {
+      try {
+        const commentData = this.buildOptimizedCommentData(comment, responseComments);
+
+        if (commentData) {
+          processedComments.push(commentData);
+
+          const ownerId = (comment as any).animal?.id_user;
+          const ownerEmail = (comment as any).animal?.userCreated?.email;
+
+          if (ownerId && ownerEmail) {
+            this.addToUserCommentMap(userCommentMap, ownerId, ownerEmail, commentData);
+          }
+        }
+      } catch (error) {
+        this.logger.warn(`Error procesando comentario ${comment.id}: ${error.message}`);
+        continue;
+      }
+    }
+
+    return { processedComments, userCommentMap };
+  }
+
+  /**
+   * Agrega un comentario al mapa de usuarios
+   */
+  private addToUserCommentMap(
+    userCommentMap: Map<string, UserAnimalComment>,
+    ownerId: string,
+    ownerEmail: string,
+    commentData: AnimalCommentData,
+  ): void {
+    if (!userCommentMap.has(ownerId)) {
+      userCommentMap.set(ownerId, {
+        user: ownerId,
+        email: ownerEmail,
+        data: [],
+      });
+    }
+    userCommentMap.get(ownerId)!.data.push(commentData);
+  }
+
+  /**
+   * Construye la estructura de datos del comentario de forma optimizada
+   */
+  private buildOptimizedCommentData(
+    comment: Comment,
+    responseComments: Comment[],
+  ): AnimalCommentData | null {
+    try {
+      const commentAny = comment as any;
+
+      if (!commentAny.animal) {
+        this.logger.warn(`Comentario ${comment.id} sin animal asociado`);
+        return null;
+      }
+
+      const zona = commentAny.animal.species?.zone?.nombre || 'Sin zona';
+      const especie = commentAny.animal.species?.nombre || 'Sin especie';
+      const animalNombre = commentAny.animal.nombre || 'Sin nombre';
+      const autorEmail = commentAny.userCreated?.email || 'Sin autor';
+
+      const directResponses = responseComments.filter(
+        (response) => response.id_comentario_principal === comment.id,
       );
-      const user_commentary = await this.userRepository.findByPk(
-        commentary_primary.id_user,
-      );
-      return {
-        zona: zone.nombre,
-        specie: species.nombre,
-        animal: animal.nombre,
-        comentario: {
-          id: commentary_primary.id,
-          comentario: commentary_primary.comentario,
-          autor: user_commentary.email,
-          fecha: commentary_primary.fecha,
-          id_comentario_principal: commentary.id_comentario_principal,
-          respuesta: {
-            id: comment.id,
-            comentario: comment.comentario,
-            autor: user.email,
-            fecha: comment.fecha,
-          },
-        },
+
+      const commentarioBase = {
+        id: String(comment.id),
+        comentario: comment.comentario || '',
+        autor: autorEmail,
+        fecha: comment.fecha,
       };
+
+      if (directResponses.length > 0) {
+        const firstResponse = directResponses[0] as any;
+        const responseAuthor = firstResponse.userCreated?.email || 'Sin autor';
+
+        return {
+          zona,
+          specie: especie,
+          animal: animalNombre,
+          comentario: {
+            ...commentarioBase,
+            respuesta: {
+              id: String(firstResponse.id),
+              comentario: firstResponse.comentario || '',
+              autor: responseAuthor,
+              fecha: firstResponse.fecha,
+              id_comentario_principal: firstResponse.id_comentario_principal ? String(firstResponse.id_comentario_principal) : undefined,
+            },
+          },
+        };
+      }
+
+      return {
+        zona,
+        specie: especie,
+        animal: animalNombre,
+        comentario: commentarioBase,
+      };
+    } catch (error) {
+      this.logger.error(`Error al construir datos del comentario ${comment.id}: ${error.message}`);
+      return null;
     }
   }
 }
