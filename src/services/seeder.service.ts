@@ -179,7 +179,7 @@ export class SeederService {
         const randomUser =
           availableUsers[Math.floor(Math.random() * availableUsers.length)];
 
-        if (!randomUser || !randomUser.id) {
+        if (!randomUser.id) {
           console.warn('⚠️ Usuario seleccionado no válido, omitiendo comentario');
           continue;
         }
@@ -214,7 +214,7 @@ export class SeederService {
       try {
         const animalSave = await Animal.findByPk(comment.id_animal);
 
-        if (!animalSave || !animalSave.id_user) {
+        if (!animalSave.id_user) {
           console.warn(`⚠️ Animal no encontrado para comentario ${comment.id}, omitiendo respuesta`);
           continue;
         }

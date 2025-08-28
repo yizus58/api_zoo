@@ -5,7 +5,7 @@ import { Species } from '../models/species.model';
 import { User } from '../models/user.model';
 import { Comment } from '../models/comment.model';
 import { Zone } from '../models/zone.model';
-import { Op, WhereOptions } from 'sequelize';
+import { Op } from 'sequelize';
 import {
   AnimalSpeciesIndicator,
   ZoneIndicator,
@@ -59,9 +59,6 @@ export class IndicatorsService {
     private readonly zoneRepository: typeof Zone,
   ) {}
 
-  /**
-   * Obtiene el rango de fechas para el día actual
-   */
   private getDayRange(): DayRange {
     const startOfDay = new Date();
     startOfDay.setUTCHours(0, 0, 0, 0);
@@ -118,9 +115,9 @@ export class IndicatorsService {
 
     const speciesList = findSpecies as Array<Species & { animals: Animal[] }>;
     const result: AnimalSpeciesIndicator[] = speciesList.map((sp) => ({
-      id: sp.id as unknown as string,
-      nombre: ((sp as any).name ?? (sp as any).nombre) as string,
-      'total animals': (sp.animals ?? []).length,
+      id: String(sp.id),
+      nombre: sp.nombre || 'Sin nombre',
+      'total animals': sp.animals?.length || 0,
     }));
 
     return result;
@@ -140,14 +137,14 @@ export class IndicatorsService {
     >;
 
     const result: ZoneIndicator[] = zones.map((area) => {
-      const totalAnimals = (area.species || []).reduce(
-        (acc, sp) => acc + (sp.animals || []).length,
+      const totalAnimals = area.species?.reduce(
+        (acc, sp) => acc + (sp.animals?.length || 0),
         0,
-      );
+      ) || 0;
 
       return {
-        id: area.id as unknown as string,
-        name: (area as any).nombre,
+        id: String(area.id),
+        name: area.nombre || 'Sin nombre',
         'total animals': totalAnimals,
       };
     });
@@ -433,11 +430,11 @@ export class IndicatorsService {
 
     const data = {
       total_resultado:
-        (findZone != null ? findZone.length : 0) +
-        (findSpecies != null ? findSpecies.length : 0) +
-        (findAnimal != null ? findAnimal.length : 0) +
-        (findCommentary != null ? findCommentary.length : 0) +
-        (findResponseComment != null ? findResponseComment.length : 0),
+        (findZone?.length || 0) +
+        (findSpecies?.length || 0) +
+        (findAnimal?.length || 0) +
+        (findCommentary?.length || 0) +
+        (findResponseComment?.length || 0),
       resultado: {
         zona: findZone,
         especie: findSpecies,
@@ -505,9 +502,6 @@ export class IndicatorsService {
     });
   }
 
-  /**
-   * Obtiene comentarios de animales del día con todas las relaciones optimizadas
-   */
   async animalsCommentPerDay(): Promise<{
     animalsComments: AnimalCommentData[];
     userAnimalComment: UserAnimalComment[];
@@ -605,9 +599,6 @@ export class IndicatorsService {
     }
   }
 
-  /**
-   * Categoriza los comentarios en principales y respuestas
-   */
   private categorizeComments(comments: Comment[]): {
     mainComments: Comment[];
     responseComments: Comment[];
@@ -623,9 +614,6 @@ export class IndicatorsService {
     return { mainComments, responseComments };
   }
 
-  /**
-   * Procesa los datos de comentarios y los agrupa por usuario propietario
-   */
   private processCommentsData(
     mainComments: Comment[],
     responseComments: Comment[],
@@ -643,15 +631,17 @@ export class IndicatorsService {
         if (commentData) {
           processedComments.push(commentData);
 
-          const ownerId = (comment as any).animal?.id_user;
-          const ownerEmail = (comment as any).animal?.userCreated?.email;
+          const commentWithRelations = comment as any;
+          const ownerId = commentWithRelations.animal?.id_user;
+          const ownerEmail = commentWithRelations.animal?.userCreated?.email;
 
           if (ownerId && ownerEmail) {
             this.addToUserCommentMap(userCommentMap, ownerId, ownerEmail, commentData);
           }
         }
       } catch (error) {
-        this.logger.warn(`Error procesando comentario ${comment.id}: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+        this.logger.warn(`Error procesando comentario ${comment.id}: ${errorMessage}`);
         continue;
       }
     }
@@ -659,9 +649,6 @@ export class IndicatorsService {
     return { processedComments, userCommentMap };
   }
 
-  /**
-   * Agrega un comentario al mapa de usuarios
-   */
   private addToUserCommentMap(
     userCommentMap: Map<string, UserAnimalComment>,
     ownerId: string,
@@ -675,28 +662,28 @@ export class IndicatorsService {
         data: [],
       });
     }
-    userCommentMap.get(ownerId)!.data.push(commentData);
+    const userComment = userCommentMap.get(ownerId);
+    if (userComment) {
+      userComment.data.push(commentData);
+    }
   }
 
-  /**
-   * Construye la estructura de datos del comentario de forma optimizada
-   */
   private buildOptimizedCommentData(
     comment: Comment,
     responseComments: Comment[],
   ): AnimalCommentData | null {
     try {
-      const commentAny = comment as any;
+      const commentWithRelations = comment as any;
 
-      if (!commentAny.animal) {
+      if (!commentWithRelations.animal) {
         this.logger.warn(`Comentario ${comment.id} sin animal asociado`);
         return null;
       }
 
-      const zona = commentAny.animal.species?.zone?.nombre || 'Sin zona';
-      const especie = commentAny.animal.species?.nombre || 'Sin especie';
-      const animalNombre = commentAny.animal.nombre || 'Sin nombre';
-      const autorEmail = commentAny.userCreated?.email || 'Sin autor';
+      const zona = commentWithRelations.animal.species?.zone?.nombre || 'Sin zona';
+      const especie = commentWithRelations.animal.species?.nombre || 'Sin especie';
+      const animalNombre = commentWithRelations.animal.nombre || 'Sin nombre';
+      const autorEmail = commentWithRelations.userCreated?.email || 'Sin autor';
 
       const directResponses = responseComments.filter(
         (response) => response.id_comentario_principal === comment.id,
@@ -712,6 +699,7 @@ export class IndicatorsService {
       if (directResponses.length > 0) {
         const firstResponse = directResponses[0] as any;
         const responseAuthor = firstResponse.userCreated?.email || 'Sin autor';
+        const principalId = firstResponse.id_comentario_principal;
 
         return {
           zona,
@@ -724,7 +712,7 @@ export class IndicatorsService {
               comentario: firstResponse.comentario || '',
               autor: responseAuthor,
               fecha: firstResponse.fecha,
-              id_comentario_principal: firstResponse.id_comentario_principal ? String(firstResponse.id_comentario_principal) : undefined,
+              id_comentario_principal: principalId ? String(principalId) : undefined,
             },
           },
         };
@@ -737,7 +725,8 @@ export class IndicatorsService {
         comentario: commentarioBase,
       };
     } catch (error) {
-      this.logger.error(`Error al construir datos del comentario ${comment.id}: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      this.logger.error(`Error al construir datos del comentario ${comment.id}: ${errorMessage}`);
       return null;
     }
   }

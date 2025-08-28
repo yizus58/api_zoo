@@ -2,8 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { IndicatorsService } from './indicators.services';
 import { ExcelService } from './excel.service';
 import { S3Service } from './s3.service';
-import * as path from 'path';
-import * as fs from 'fs';
 import crypto from 'crypto';
 
 @Injectable()
@@ -17,9 +15,9 @@ export class CronService {
   ) {}
 
   async executeDailyTask() {
+    const perUserResults: Array<{ userId: string; fileName?: string; error: string | null }> = [];
     try {
       this.logger.log('Iniciando tarea diaria de generación de reportes...');
-      const arrayErrors: any[] = [];
 
       const data = await this.indicatorService.animalsCommentPerDay();
 
@@ -30,27 +28,26 @@ export class CronService {
           message: 'No hay comentarios para procesar hoy',
           totalUsers: 0,
           totalComments: 0,
+          results: [],
         };
       }
 
       for (const userInfo of data.userAnimalComment) {
-        console.log('Generando reporte para el usuario:', userInfo);
-        const data = [userInfo];
+        this.logger.log('Generando reporte para el usuario:', userInfo);
+
         const today = new Date();
-        const userId = data[0].user.slice(0, 8);
+        const userId = userInfo.user.slice(0, 8);
         const dateStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
         const fileName = `reporte-diario-comentarios-${userId}-${dateStr}.xlsx`;
-        console.log('Generando reporte para el usuario:', fileName);
+        this.logger.log(`Generando reporte para el archivo: ${fileName}`);
 
         const buffer = await this.excelService.generarExcelPorUsuario(userInfo);
 
         if (!buffer || typeof buffer === 'boolean') {
-          console.log('ERROR al generar el buffer del Excel para S3');
-          arrayErrors.push({ userId, error: 'Error al generar el buffer del Excel para S3' });
+          this.logger.error('Error al generar el buffer del Excel para S3/R2');
+          perUserResults.push({ userId, fileName, error: 'Error al generar el buffer del Excel para S3/R2' });
           continue;
         }
-
-        let s3UploadResult = null;
 
         try {
           const nameS3 = crypto.randomBytes(16).toString('hex');
@@ -58,34 +55,34 @@ export class CronService {
             process.env.MIME_TYPE_EXCEL ||
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
-          s3UploadResult = await this.s3Service.uploadFile(
-            buffer as Buffer,
-            contentType,
-            nameS3,
-          );
+          await this.s3Service.uploadFile(buffer, contentType, nameS3);
           this.logger.log(`Archivo subido a S3/R2 exitosamente: ${nameS3}`);
-        } catch (error) {
-          this.logger.error('Error al subir archivo a S3/R2:', error.message);
-          arrayErrors.push({ userId, error: `Error al subir archivo a S3/R2: ${error.message}` });
+          perUserResults.push({ userId, fileName, error: null });
+        } catch (error: any) {
+          this.logger.error('Error al subir archivo a S3/R2:', error?.message ?? String(error));
+          perUserResults.push({
+            userId,
+            fileName,
+            error: `Error al subir archivo a S3/R2: ${error?.message ?? String(error)}`,
+          });
         }
       }
 
-      this.logger.log(
-        `Total de usuarios procesados: ${data.userAnimalComment?.length || 0}`,
-      );
+      const totalProcessed = data.userAnimalComment.length;
+      const totalComments = data.animalsComments?.length || 0;
+      const totalErrors = perUserResults.filter(r => r.error).length;
+
+      this.logger.log(`Total de usuarios procesados: ${totalProcessed}. Errores: ${totalErrors}`);
 
       return {
-        success: true,
-        //fileName: fileName,
-        totalUsers: data.userAnimalComment?.length || 0,
-        totalComments: data.animalsComments?.length || 0,
-        //s3Upload: s3UploadResult ? 'success' : 'failed',
+        success: totalErrors === 0,
+        totalUsers: totalProcessed,
+        totalComments,
+        errors: totalErrors,
+        results: perUserResults,
       };
     } catch (error) {
-      this.logger.error(
-        'Error en la tarea diaria de generación de reportes:',
-        error,
-      );
+      this.logger.error('Error en la tarea diaria de generación de reportes:', error);
       throw error;
     }
   }
