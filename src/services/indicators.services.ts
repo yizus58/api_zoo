@@ -492,12 +492,10 @@ export class IndicatorsService {
 
     const animalsComments = await Promise.all(
       findAnimalsComment.map(async (comment) => {
-        const isResponse = findAnimalsComment.some(
-          (otherComment) =>
-            otherComment.respuestas &&
-            otherComment.respuestas.some(
-              (respuesta) => respuesta.id === comment.id,
-            ),
+        const isResponse = findAnimalsComment.some((otherComment) =>
+          otherComment.respuestas?.some(
+            (respuesta) => respuesta.id === comment.id,
+          ),
         );
 
         if (isResponse) {
