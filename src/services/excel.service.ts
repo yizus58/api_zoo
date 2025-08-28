@@ -6,47 +6,21 @@ export interface ExcelGenerationOptions {
   filePath?: string;
 }
 
-export interface CommentExcelData {
-  zona: string;
-  specie: string;
-  animal: string;
-  comentario: {
-    id: string;
-    comentario: string;
-    autor: string;
-    fecha: Date;
-    respuesta: {
-      id: string;
-      comentario: string;
-      autor: string;
-      fecha: Date;
-    };
-  };
-}
-
-export interface UserExcelData {
-  user: string;
-  email: string;
-  data: CommentExcelData[];
-}
-
 @Injectable()
 export class ExcelService {
   constructor(private readonly indicatorsService: IndicatorsService) {}
 
   async generarExcelPorUsuario(
-    data: UserExcelData[],
+    data,
     opts: ExcelGenerationOptions = {},
-  ): Promise<any> {
+  ): Promise<Buffer | boolean> {
     const workbook = new ExcelJS.Workbook();
     workbook.created = new Date();
     workbook.modified = new Date();
     workbook.calcProperties.fullCalcOnLoad = true;
 
-    const validaArray = Array.isArray(data) ? data : [];
-    const validObject =
-      data && typeof data === 'object' && Array.isArray(data) ? data : [];
-    const items = [...validaArray, ...validObject];
+    const items =
+      data && typeof data === 'object' && Array.isArray(data) ? data : [data];
 
     if (items.length === 0) {
       throw new HttpException(
@@ -55,8 +29,22 @@ export class ExcelService {
       );
     }
 
+    const usedSheetNames = new Set<string>();
+
     for (const item of items) {
-      const sheetName = (item.email || 'usuario').substring(0, 31);
+      const baseSheetName = (item.email || 'usuario').substring(0, 25);
+      let sheetName = baseSheetName;
+      let counter = 1;
+
+      // Asegurar que el nombre de la hoja sea único
+      while (usedSheetNames.has(sheetName)) {
+        const suffix = `_${counter}`;
+        const maxLength = 31 - suffix.length;
+        sheetName = baseSheetName.substring(0, maxLength) + suffix;
+        counter++;
+      }
+
+      usedSheetNames.add(sheetName);
       const ws = workbook.addWorksheet(sheetName);
 
       const headerStyle = { bold: true };
@@ -139,16 +127,24 @@ export class ExcelService {
       await workbook.xlsx.writeFile(opts.filePath);
       return false;
     } else {
-      return await workbook.xlsx.writeBuffer();
+      return Buffer.from(await workbook.xlsx.writeBuffer());
     }
   }
 
   async generarExcelComentariosDelDia(
     opts: ExcelGenerationOptions = {},
-  ): Promise<any> {
+  ): Promise<Buffer | boolean> {
     try {
-      const { userAnimalComment } =
-        await this.indicatorsService.animalsCommentPerDay();
+      const data = await this.indicatorsService.animalsCommentPerDay();
+
+      if (!data) {
+        throw new HttpException(
+          'No se pudieron obtener los datos de comentarios del día',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      const { userAnimalComment } = data;
 
       if (!userAnimalComment || userAnimalComment.length === 0) {
         throw new HttpException(
@@ -159,11 +155,12 @@ export class ExcelService {
 
       return await this.generarExcelPorUsuario(userAnimalComment, opts);
     } catch (error) {
+      console.error('Error en generarExcelComentariosDelDia:', error);
       if (error instanceof HttpException) {
         throw error;
       }
       throw new HttpException(
-        'Error al generar el reporte de Excel',
+        `Error al generar el reporte de Excel: ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

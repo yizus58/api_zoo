@@ -487,7 +487,7 @@ export class IndicatorsService {
 
     if (findAnimalsComment.length == 0) {
       console.error('No hay comentarios en la base de datos');
-      return;
+      return { animalsComments: [], userAnimalComment: [] };
     }
 
     const animalsComments = await Promise.all(
@@ -508,57 +508,40 @@ export class IndicatorsService {
         );
         const zone = await this.zoneRepository.findByPk(species.id_area);
         const user = await this.userRepository.findByPk(comment.id_user);
-        if (comment.respuestas[0].id_user !== null) {
+
+        if (
+          comment.respuestas &&
+          comment.respuestas.length > 0 &&
+          comment.respuestas[0].id_user !== null
+        ) {
           userCommentResponse = await this.userRepository.findByPk(
             comment.respuestas[0].id_user,
           );
         }
+        const commentData = await this.insertCommentArray(
+          zone,
+          species,
+          animal,
+          comment,
+          user,
+          userCommentResponse,
+        );
 
-        const commentData = {
-          zona: zone.nombre,
-          specie: species.nombre,
-          animal: animal.nombre,
-          comentario: {
-            id: comment.id,
-            comentario: comment.comentario,
-            autor: user.email,
-            fecha: comment.fecha,
-            respuesta: {
-              id:
-                comment.respuestas && comment.respuestas.length > 0
-                  ? comment.respuestas[0].id
-                  : '',
-              comentario:
-                comment.respuestas && comment.respuestas.length > 0
-                  ? comment.respuestas[0].comentario
-                  : '',
-              autor: userCommentResponse ? userCommentResponse.email : '',
-              fecha:
-                comment.respuestas && comment.respuestas.length > 0
-                  ? comment.respuestas[0].fecha
-                  : '',
-              id_comentario_principal:
-                comment.respuestas && comment.respuestas.length > 0
-                  ? comment.respuestas[0].id_comentario_principal
-                  : '',
-            },
-          },
-        };
+        const animalOwner = await this.userRepository.findByPk(animal.id_user);
 
         const existingUserIndex = userAnimalComment.findIndex(
-          (item) => item.user === user.id,
+          (item) => item.user === animal.id_user,
         );
 
         if (existingUserIndex !== -1) {
           userAnimalComment[existingUserIndex].data.push(commentData);
         } else {
           userAnimalComment.push({
-            user: user.id,
-            email: user.email,
+            user: animal.id_user,
+            email: animalOwner.email,
             data: [commentData],
           });
         }
-
         return commentData;
       }),
     );
@@ -566,6 +549,78 @@ export class IndicatorsService {
     const filteredAnimalsComments = animalsComments.filter(
       (comment) => comment !== null,
     );
+    console.log('ARRAY COMPLETE ', userAnimalComment);
     return { animalsComments: filteredAnimalsComments, userAnimalComment };
+  }
+
+  async insertCommentArray(
+    zone,
+    species,
+    animal,
+    comment,
+    user,
+    userCommentResponse,
+  ) {
+    if (comment.respuestas.length > 0) {
+      console.log('Comment Primary');
+      return {
+        zona: zone.nombre,
+        specie: species.nombre,
+        animal: animal.nombre,
+        comentario: {
+          id: comment.id,
+          comentario: comment.comentario,
+          autor: user.email,
+          fecha: comment.fecha,
+          respuesta: {
+            id:
+              comment.respuestas && comment.respuestas.length > 0
+                ? comment.respuestas[0].id
+                : '',
+            comentario:
+              comment.respuestas && comment.respuestas.length > 0
+                ? comment.respuestas[0].comentario
+                : '',
+            autor: userCommentResponse ? userCommentResponse.email : '',
+            fecha:
+              comment.respuestas && comment.respuestas.length > 0
+                ? comment.respuestas[0].fecha
+                : '',
+            id_comentario_principal:
+              comment.respuestas && comment.respuestas.length > 0
+                ? comment.respuestas[0].id_comentario_principal
+                : '',
+          },
+        },
+      };
+    } else {
+      console.log('Respuesta Comentario');
+      const commentary_id = comment.id;
+      const commentary = await this.commentRepository.findByPk(commentary_id);
+      const commentary_primary = await this.commentRepository.findByPk(
+        commentary.id_comentario_principal,
+      );
+      const user_commentary = await this.userRepository.findByPk(
+        commentary_primary.id_user,
+      );
+      return {
+        zona: zone.nombre,
+        specie: species.nombre,
+        animal: animal.nombre,
+        comentario: {
+          id: commentary_primary.id,
+          comentario: commentary_primary.comentario,
+          autor: user_commentary.email,
+          fecha: commentary_primary.fecha,
+          id_comentario_principal: commentary.id_comentario_principal,
+          respuesta: {
+            id: comment.id,
+            comentario: comment.comentario,
+            autor: user.email,
+            fecha: comment.fecha,
+          },
+        },
+      };
+    }
   }
 }

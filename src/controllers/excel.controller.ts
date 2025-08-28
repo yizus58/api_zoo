@@ -36,7 +36,7 @@ export class ExcelController {
       } else {
         const buffer = await this.excelService.generarExcelComentariosDelDia();
 
-        if (!buffer) {
+        if (!buffer || typeof buffer === 'boolean') {
           throw new HttpException(
             'Error al generar el buffer del Excel',
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -52,7 +52,7 @@ export class ExcelController {
           `attachment; filename="${fileName}"`,
         );
         res?.setHeader('Content-Length', Buffer.byteLength(buffer));
-        res?.send(Buffer.from(buffer));
+        res?.send(buffer);
       }
     } catch (error) {
       if (error instanceof HttpException) {
@@ -90,7 +90,7 @@ export class ExcelController {
       } else {
         const buffer = await this.excelService.generarExcelComentariosDelDia();
 
-        if (!buffer) {
+        if (!buffer || typeof buffer === 'boolean') {
           throw new HttpException(
             'Error al generar el buffer del Excel',
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -106,7 +106,7 @@ export class ExcelController {
           `attachment; filename="${fileName}"`,
         );
         res?.setHeader('Content-Length', Buffer.byteLength(buffer));
-        res?.send(Buffer.from(buffer));
+        res?.send(buffer);
       }
     } catch (error) {
       if (error instanceof HttpException) {

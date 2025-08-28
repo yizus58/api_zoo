@@ -162,11 +162,28 @@ export class SeederService {
     const AllCommentsResponse = [];
     const empleadoUsers = allUsers.filter(user => user.role === UserRole.EMPLEADO);
 
+    if (empleadoUsers.length === 0) {
+      console.warn('⚠️ No hay usuarios empleados disponibles para crear comentarios');
+      return { totalComments: 0, AllCommentsResponse: [] };
+    }
+
     for (const animal of allAnimals) {
       for (let i = 0; i < this.COMMENTS_PER_ANIMAL; i++) {
         const availableUsers = empleadoUsers.filter(user => user.id !== animal.id_user);
+
+        if (availableUsers.length === 0) {
+          console.warn(`⚠️ No hay usuarios disponibles para comentar en el animal ${animal.id}`);
+          continue;
+        }
+
         const randomUser =
           availableUsers[Math.floor(Math.random() * availableUsers.length)];
+
+        if (!randomUser || !randomUser.id) {
+          console.warn('⚠️ Usuario seleccionado no válido, omitiendo comentario');
+          continue;
+        }
+
         const comment = await Comment.create({
           id: uuidv4(),
           comentario: randParagraph({
@@ -194,22 +211,32 @@ export class SeederService {
     let totalCommentsResponse = 0;
 
     for (const comment of allComments) {
-      const animalSave = await Animal.findByPk(comment.id_animal);
+      try {
+        const animalSave = await Animal.findByPk(comment.id_animal);
 
-      await Comment.create({
-        id: uuidv4(),
-        comentario: randParagraph({
-          length: randNumber({ min: 1, max: 3 }),
-        }).join(' '),
-        id_animal: comment.id_animal,
-        id_comentario_principal: comment.id,
-        id_user: animalSave.id_user,
-        fecha: randBetweenDate({
-          from: comment.fecha,
-          to: new Date(),
-        }),
-      });
-      totalCommentsResponse++;
+        if (!animalSave || !animalSave.id_user) {
+          console.warn(`⚠️ Animal no encontrado para comentario ${comment.id}, omitiendo respuesta`);
+          continue;
+        }
+
+        await Comment.create({
+          id: uuidv4(),
+          comentario: randParagraph({
+            length: randNumber({ min: 1, max: 3 }),
+          }).join(' '),
+          id_animal: comment.id_animal,
+          id_comentario_principal: comment.id,
+          id_user: animalSave.id_user,
+          fecha: randBetweenDate({
+            from: comment.fecha,
+            to: new Date(),
+          }),
+        });
+        totalCommentsResponse++;
+      } catch (error) {
+        console.error(`❌ Error creando respuesta para comentario ${comment.id}:`, error);
+        continue;
+      }
     }
     return totalCommentsResponse;
   }
