@@ -3,7 +3,9 @@ import { IndicatorsService } from './indicators.services';
 import { ExcelService } from './excel.service';
 import { PdfService } from './pdf.service';
 import { S3Service } from './s3.service';
+import { RabbitMQService } from './rabbitmq.services';
 import crypto from 'crypto';
+import { htmlContentFile } from '../../public/htmlReport.js';
 
 @Injectable()
 export class CronService {
@@ -14,9 +16,10 @@ export class CronService {
     private readonly excelService: ExcelService,
     private readonly s3Service: S3Service,
     private readonly pdfService: PdfService,
+    private readonly rabbitMQService: RabbitMQService,
   ) {}
 
-  async executeDailyTask() {
+  async executedDailyTask() {
     const dataResponse: Array<{
       id_user: string;
       email: string;
@@ -29,19 +32,13 @@ export class CronService {
 
       if (!data?.userAnimalComment || data.userAnimalComment.length === 0) {
         this.logger.warn('No hay comentarios para procesar hoy');
-        return {
-          success: false,
-          message: 'No hay comentarios para procesar hoy',
-          totalUsers: 0,
-          totalComments: 0,
-          results: [],
-        };
+        return [];
       }
 
       for (const userInfo of data.userAnimalComment) {
         const generatedFileExcel = await this.generateExcelReport(userInfo);
         const generatedFilePdf = await this.generatePdfReport(userInfo);
-        const filesS3 = { ...generatedFileExcel, ...generatedFilePdf };
+        const filesS3 = [].concat(generatedFileExcel, generatedFilePdf);
 
         dataResponse.push({
           id_user: userInfo.user,
@@ -56,6 +53,34 @@ export class CronService {
         error,
       );
       throw error;
+    }
+  }
+
+  async executeDailyTask() {
+    const dataExecute = await this.executedDailyTask();
+    if (dataExecute.length === 0) {
+      return false;
+    }
+
+    const subject = 'Reporte diario de comentarios';
+
+    for (const data of dataExecute) {
+      console.log(`Enviando correo electrónico a ${data.email}...`);
+      console.log('ATTACHMENTS: ', data.files);
+      const html = htmlContentFile();
+      const id = Math.floor(Math.random() * 1000000);
+      const message = {
+        type: 'email_notification',
+        data: {
+          userId: id,
+          recipients: data.email,
+          subject: subject,
+          html: html,
+          ...(data.files && { attachments: data.files }),
+        },
+        timestamp: new Date().toISOString(),
+      };
+      await this.rabbitMQService.publishMessageBackoff(message);
     }
   }
 

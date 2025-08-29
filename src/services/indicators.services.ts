@@ -137,10 +137,9 @@ export class IndicatorsService {
     >;
 
     const result: ZoneIndicator[] = zones.map((area) => {
-      const totalAnimals = area.species?.reduce(
-        (acc, sp) => acc + (sp.animals?.length || 0),
-        0,
-      ) || 0;
+      const totalAnimals =
+        area.species?.reduce((acc, sp) => acc + (sp.animals?.length || 0), 0) ||
+        0;
 
       return {
         id: String(area.id),
@@ -520,7 +519,13 @@ export class IndicatorsService {
           {
             model: Comment,
             as: 'respuestas',
-            attributes: ['id', 'comentario', 'id_user', 'fecha', 'id_comentario_principal'],
+            attributes: [
+              'id',
+              'comentario',
+              'id_user',
+              'fecha',
+              'id_comentario_principal',
+            ],
             required: false,
             include: [
               {
@@ -574,7 +579,8 @@ export class IndicatorsService {
         return { animalsComments: [], userAnimalComment: [] };
       }
 
-      const { mainComments, responseComments } = this.categorizeComments(comments);
+      const { mainComments, responseComments } =
+        this.categorizeComments(comments);
 
       if (mainComments.length === 0) {
         this.logger.log('No hay comentarios principales para el día actual');
@@ -591,7 +597,9 @@ export class IndicatorsService {
         userAnimalComment: Array.from(userCommentMap.values()),
       };
     } catch (error) {
-      this.logger.error(`Error al obtener comentarios del día: ${error.message}`);
+      this.logger.error(
+        `Error al obtener comentarios del día: ${error.message}`,
+      );
       throw new HttpException(
         'Error interno al obtener comentarios del día',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -626,7 +634,10 @@ export class IndicatorsService {
 
     for (const comment of mainComments) {
       try {
-        const commentData = this.buildOptimizedCommentData(comment, responseComments);
+        const commentData = this.buildOptimizedCommentData(
+          comment,
+          responseComments,
+        );
 
         if (commentData) {
           processedComments.push(commentData);
@@ -636,12 +647,20 @@ export class IndicatorsService {
           const ownerEmail = commentWithRelations.animal?.userCreated?.email;
 
           if (ownerId && ownerEmail) {
-            this.addToUserCommentMap(userCommentMap, ownerId, ownerEmail, commentData);
+            this.addToUserCommentMap(
+              userCommentMap,
+              ownerId,
+              ownerEmail,
+              commentData,
+            );
           }
         }
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-        this.logger.warn(`Error procesando comentario ${comment.id}: ${errorMessage}`);
+        const errorMessage =
+          error instanceof Error ? error.message : 'Error desconocido';
+        this.logger.warn(
+          `Error procesando comentario ${comment.id}: ${errorMessage}`,
+        );
         continue;
       }
     }
@@ -680,8 +699,10 @@ export class IndicatorsService {
         return null;
       }
 
-      const zona = commentWithRelations.animal.species?.zone?.nombre || 'Sin zona';
-      const especie = commentWithRelations.animal.species?.nombre || 'Sin especie';
+      const zona =
+        commentWithRelations.animal.species?.zone?.nombre || 'Sin zona';
+      const especie =
+        commentWithRelations.animal.species?.nombre || 'Sin especie';
       const animalNombre = commentWithRelations.animal.nombre || 'Sin nombre';
       const autorEmail = commentWithRelations.userCreated?.email || 'Sin autor';
 
@@ -712,7 +733,9 @@ export class IndicatorsService {
               comentario: firstResponse.comentario || '',
               autor: responseAuthor,
               fecha: firstResponse.fecha,
-              id_comentario_principal: principalId ? String(principalId) : undefined,
+              id_comentario_principal: principalId
+                ? String(principalId)
+                : undefined,
             },
           },
         };
@@ -725,8 +748,11 @@ export class IndicatorsService {
         comentario: commentarioBase,
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-      this.logger.error(`Error al construir datos del comentario ${comment.id}: ${errorMessage}`);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Error desconocido';
+      this.logger.error(
+        `Error al construir datos del comentario ${comment.id}: ${errorMessage}`,
+      );
       return null;
     }
   }

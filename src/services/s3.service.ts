@@ -47,14 +47,6 @@ export class S3Service {
       throw new Error('R2_BUCKET_SECRET_KEY parece ser inválida (muy corta)');
     }
 
-    this.logger.log(`Configurando S3 client con región: ${region}`);
-    this.logger.log(`Account ID: ${accountId}`);
-    this.logger.log(`Bucket Name: ${bucketName}`);
-    this.logger.log(
-      `Access Key configurado: ${accessKey.substring(0, 4)}...${accessKey.substring(accessKey.length - 4)}`,
-    );
-    this.logger.log(`Endpoint: https://${accountId}.r2.cloudflarestorage.com`);
-
     const accountIdRegex = /^[a-f0-9]{32}$/i;
     if (!accountIdRegex.test(accountId)) {
       this.logger.warn(

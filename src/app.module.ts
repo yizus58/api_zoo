@@ -12,6 +12,7 @@ import { CommentModule } from './modules/comment.module';
 import { IndicatorsModule } from './modules/indicators.module';
 import { CronModule } from './modules/cron.module';
 import { S3Module } from './modules/s3.module';
+import { RabbitMQModule } from './modules/rabbitmq.module';
 
 const environment = process.env.NODE_ENV;
 
@@ -31,6 +32,7 @@ const environment = process.env.NODE_ENV;
     IndicatorsModule,
     CronModule,
     S3Module,
+    RabbitMQModule,
   ],
   controllers: [AppController],
   providers: [AppService],
