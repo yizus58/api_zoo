@@ -17,10 +17,10 @@ export class CronService {
   ) {}
 
   async executeDailyTask() {
-    const perUserResults: Array<{
-      userId: string;
-      fileName?: string;
-      error: string | null;
+    const dataResponse: Array<{
+      id_user: string;
+      email: string;
+      files: object | null;
     }> = [];
     try {
       this.logger.log('Iniciando tarea diaria de generación de reportes...');
@@ -39,27 +39,17 @@ export class CronService {
       }
 
       for (const userInfo of data.userAnimalComment) {
-        this.logger.log('Generando reporte para el usuario:', userInfo);
-
         const generatedFileExcel = await this.generateExcelReport(userInfo);
         const generatedFilePdf = await this.generatePdfReport(userInfo);
+        const filesS3 = { ...generatedFileExcel, ...generatedFilePdf };
+
+        dataResponse.push({
+          id_user: userInfo.user,
+          email: userInfo.email,
+          files: filesS3,
+        });
       }
-
-      const totalProcessed = data.userAnimalComment.length;
-      const totalComments = data.animalsComments?.length || 0;
-      const totalErrors = perUserResults.filter((r) => r.error).length;
-
-      this.logger.log(
-        `Total de usuarios procesados: ${totalProcessed}. Errores: ${totalErrors}`,
-      );
-
-      return {
-        success: totalErrors === 0,
-        totalUsers: totalProcessed,
-        totalComments,
-        errors: totalErrors,
-        //results: perUserResults,
-      };
+      return dataResponse;
     } catch (error) {
       this.logger.error(
         'Error en la tarea diaria de generación de reportes:',
@@ -70,11 +60,6 @@ export class CronService {
   }
 
   async generateExcelReport(userInfo: any) {
-    const perUserResults: Array<{
-      userId: string;
-      fileName?: string;
-      error: string | null;
-    }> = [];
     const today = new Date();
     const userId = userInfo.user.slice(0, 8);
     const dateStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
@@ -85,11 +70,6 @@ export class CronService {
 
     if (!buffer || typeof buffer === 'boolean') {
       this.logger.error('Error al generar el buffer del Excel para S3/R2');
-      perUserResults.push({
-        userId,
-        fileName,
-        error: 'Error al generar el buffer del Excel para S3/R2',
-      });
       return;
     }
 
@@ -101,27 +81,16 @@ export class CronService {
 
       await this.s3Service.uploadFile(buffer, contentType, nameS3);
       this.logger.log(`Archivo EXCEL subido a S3/R2 exitosamente: ${nameS3}`);
-      perUserResults.push({ userId, fileName, error: null });
+      return { name_file: fileName, s3_name: nameS3 };
     } catch (error: any) {
       this.logger.error(
         'Error al subir archivo a S3/R2:',
         error?.message ?? String(error),
       );
-      perUserResults.push({
-        userId,
-        fileName,
-        error: `Error al subir archivo a S3/R2: ${error?.message ?? String(error)}`,
-      });
     }
-    return perUserResults;
   }
 
   async generatePdfReport(userInfo: any) {
-    const perUserResults: Array<{
-      userId: string;
-      fileName?: string;
-      error: string | null;
-    }> = [];
     const today = new Date();
     const userId = userInfo.user.slice(0, 8);
     const dateStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
@@ -132,11 +101,6 @@ export class CronService {
 
     if (!buffer || typeof buffer === 'boolean') {
       this.logger.error('Error al generar el buffer del PDF para S3/R2');
-      perUserResults.push({
-        userId,
-        fileName,
-        error: 'Error al generar el buffer del PDF para S3/R2',
-      });
       return;
     }
 
@@ -146,18 +110,12 @@ export class CronService {
 
       await this.s3Service.uploadFile(buffer, contentType, nameS3);
       this.logger.log(`Archivo PDF subido a S3/R2 exitosamente: ${nameS3}`);
-      perUserResults.push({ userId, fileName, error: null });
+      return { name_file: fileName, s3_name: nameS3 };
     } catch (error: any) {
       this.logger.error(
         'Error al subir archivo a S3/R2:',
         error?.message ?? String(error),
       );
-      perUserResults.push({
-        userId,
-        fileName,
-        error: `Error al subir archivo a S3/R2: ${error?.message ?? String(error)}`,
-      });
     }
-    return perUserResults;
   }
 }
