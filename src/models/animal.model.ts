@@ -27,8 +27,8 @@ export class Animal extends Model<Animal> {
   declare id: string;
 
   @ApiProperty({
-    example: 'Leon',
     description: 'Nombre del animal',
+    example: 'Leon',
     type: DataType.STRING,
     nullable: false,
     uniqueItems: true,
@@ -41,8 +41,8 @@ export class Animal extends Model<Animal> {
   declare nombre: string;
 
   @ApiProperty({
-    example: 'eab3b67f-a18e-4e2b-b675-9e0cbe7f5bc6',
     description: 'ID de la especie',
+    example: 'eab3b67f-a18e-4e2b-b675-9e0cbe7f5bc6',
     type: DataType.UUID,
     nullable: false,
   })
@@ -53,8 +53,8 @@ export class Animal extends Model<Animal> {
   declare id_especie: string;
 
   @ApiProperty({
-    example: 'eab3b67f-a18e-4e2b-b675-9e0cbe7f5bc6',
     description: 'ID del usuario que lo esta ingresando',
+    example: 'eab3b67f-a18e-4e2b-b675-9e0cbe7f5bc6',
     type: DataType.UUID,
     nullable: false,
   })

@@ -25,8 +25,8 @@ export class Comment extends Model<Comment> {
   declare id: string;
 
   @ApiProperty({
-    example: 'Que hermoso leon',
     description: 'Comentario sobre el animal',
+    example: 'Que hermoso leon',
     type: DataType.TEXT,
     nullable: false,
   })
@@ -37,8 +37,8 @@ export class Comment extends Model<Comment> {
   declare comentario: string;
 
   @ApiProperty({
-    example: 'eab3b67f-a18e-4e2b-b675-9e0cbe7f5bc6',
     description: 'ID del animal que se esta comentando',
+    example: 'eab3b67f-a18e-4e2b-b675-9e0cbe7f5bc6',
     type: DataType.UUID,
     nullable: false,
   })
@@ -49,8 +49,8 @@ export class Comment extends Model<Comment> {
   declare id_animal: string;
 
   @ApiProperty({
-    example: '9e0c67f-a18e-4e2b-b675-eab3be7f5bc6',
     description: 'ID del usuario que esta comentando',
+    example: '9e0c67f-a18e-4e2b-b675-eab3be7f5bc6',
     type: DataType.UUID,
     nullable: false,
   })
@@ -61,8 +61,8 @@ export class Comment extends Model<Comment> {
   declare id_user: string;
 
   @ApiProperty({
-    example: '9e0c67f-a18e-4e2b-b675-eab3be7f5bc6',
     description: 'ID del comentario inicial al cual se esta respondiendo',
+    example: '9e0c67f-a18e-4e2b-b675-eab3be7f5bc6',
     type: DataType.UUID,
     nullable: true,
   })

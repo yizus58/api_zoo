@@ -1,7 +1,8 @@
 import {
   Injectable,
-  ConflictException,
   OnApplicationBootstrap,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/sequelize';
@@ -12,12 +13,9 @@ import { User } from '../models/user.model';
 import { UserRole } from '../types/user.types';
 
 interface UserCreateResponse {
-  result: boolean;
-  data: {
-    id: string;
-    email: string;
-    role: UserRole;
-  };
+  id: string;
+  email: string;
+  role: UserRole;
 }
 
 @Injectable()
@@ -80,7 +78,10 @@ export class UserService implements OnApplicationBootstrap {
     });
 
     if (existingUser) {
-      throw new ConflictException('El email ya está registrado');
+      throw new HttpException(
+        'El email ya está registrado',
+        HttpStatus.CONFLICT,
+      );
     }
 
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
@@ -92,12 +93,9 @@ export class UserService implements OnApplicationBootstrap {
     });
 
     return {
-      result: true,
-      data: {
-        id: newUser.id,
-        email: newUser.email,
-        role: newUser.role,
-      },
+      id: newUser.id,
+      email: newUser.email,
+      role: newUser.role,
     };
   }
 
@@ -108,9 +106,14 @@ export class UserService implements OnApplicationBootstrap {
   }
 
   async findById(id: string): Promise<User | null> {
-    return await this.userRepository.findOne({
+    const findUser = await this.userRepository.findOne({
       where: { id },
     });
+
+    if (!findUser) {
+      throw new HttpException('Usuario no encontrado', HttpStatus.NOT_FOUND);
+    }
+    return findUser;
   }
 
   async validatePassword(
@@ -124,6 +127,12 @@ export class UserService implements OnApplicationBootstrap {
     const users = await this.userRepository.findAll({
       attributes: { exclude: ['password'] },
     });
+    if (users.length === 0) {
+      throw new HttpException(
+        'No hay usuarios registrados',
+        HttpStatus.NOT_FOUND,
+      );
+    }
     return users;
   }
 }

@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { ApiResponse } from '@nestjs/swagger';
 import { ZoneDto } from '../dto/zone.dto';
-import { ResponseDto } from '../dto/response.dto';
+import { ZoneResponseDto } from '../dto/response.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
@@ -45,7 +45,7 @@ export class ZoneController {
   @ApiResponse({
     status: 200,
     description: 'Array de zonas',
-    type: [ResponseDto],
+    type: [ZoneResponseDto],
   })
   @ApiResponse({
     status: 404,
@@ -63,7 +63,7 @@ export class ZoneController {
   @ApiResponse({
     status: 200,
     description: 'Array de zonas',
-    type: [ResponseDto],
+    type: [ZoneResponseDto],
   })
   @ApiResponse({
     status: 404,

@@ -38,10 +38,7 @@ export class AnimalService {
       throw new HttpException('Animal no encontrado', HttpStatus.NOT_FOUND);
     }
 
-    return {
-      status: true,
-      data: findAnimal,
-    };
+    return findAnimal;
   }
 
   async getAllAnimals() {
@@ -65,10 +62,7 @@ export class AnimalService {
         HttpStatus.NOT_FOUND,
       );
     }
-    return {
-      status: true,
-      data: findAnimals,
-    };
+    return findAnimals;
   }
 
   async createAnimal(id: string, animalDto: AnimalDto) {
@@ -94,14 +88,6 @@ export class AnimalService {
       );
     }
 
-    const findUser = await this.userRepository.findByPk(id);
-    if (!findUser) {
-      throw new HttpException(
-        'El usuario especificado no existe',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
     const data = {
       nombre: animalDto.nombre,
       id_especie: animalDto.id_especie,
@@ -111,10 +97,7 @@ export class AnimalService {
 
     const save = await this.animalRepository.create(data);
     if (save) {
-      return {
-        status: true,
-        message: 'Animal creado correctamente',
-      };
+      return 'Animal creado correctamente';
     }
   }
 
@@ -137,11 +120,10 @@ export class AnimalService {
       );
     }
 
-    const findUser = await this.userRepository.findByPk(id_user);
-    if (!findUser) {
+    if (findAnimal.id_user !== id_user) {
       throw new HttpException(
-        'El usuario especificado no existe',
-        HttpStatus.NOT_FOUND,
+        'No tienes permisos para editar este animal',
+        HttpStatus.FORBIDDEN,
       );
     }
 
@@ -150,19 +132,23 @@ export class AnimalService {
     });
 
     if (update) {
-      return {
-        status: true,
-        message: 'Animal actualizado correctamente',
-      };
+      return 'Animal actualizado correctamente';
     }
   }
 
-  async deleteAnimal(id: string) {
+  async deleteAnimal(id: string, id_user: string) {
     const findAnimal = await this.animalRepository.findByPk(id);
     if (!findAnimal) {
       throw new HttpException(
         'El animal especificado no existe',
         HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (findAnimal.id_user !== id_user) {
+      throw new HttpException(
+        'No tienes permisos para editar este animal',
+        HttpStatus.FORBIDDEN,
       );
     }
 
@@ -175,10 +161,7 @@ export class AnimalService {
     });
 
     if (deleteAnimal) {
-      return {
-        status: true,
-        message: 'Animal eliminado correctamente',
-      };
+      return 'Animal eliminado correctamente';
     }
   }
 }

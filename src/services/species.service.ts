@@ -52,10 +52,7 @@ export class SpeciesService {
         HttpStatus.NOT_FOUND,
       );
     }
-    return {
-      status: true,
-      data: findSpecies,
-    };
+    return findSpecies;
   }
 
   async createSpecies(speciesDto: SpeciesDto) {
@@ -80,10 +77,7 @@ export class SpeciesService {
 
     const save = await this.speciesRepository.create(speciesDto);
     if (save) {
-      return {
-        status: true,
-        message: 'Especie creada correctamente',
-      };
+      return 'Especie creada correctamente';
     }
   }
 
@@ -104,15 +98,19 @@ export class SpeciesService {
       );
     }
 
+    if (findSpecies.nombre === speciesDto.nombre) {
+      throw new HttpException(
+        'El nombre de la especie ya existe',
+        HttpStatus.CONFLICT,
+      );
+    }
+
     const update = await this.speciesRepository.update(speciesDto, {
       where: { id },
     });
 
     if (update) {
-      return {
-        status: true,
-        message: 'Especie actualizada correctamente',
-      };
+      return 'Especie actualizada correctamente';
     }
   }
 
@@ -137,10 +135,7 @@ export class SpeciesService {
     });
 
     if (deleteSpecies) {
-      return {
-        status: true,
-        message: 'Especie eliminada correctamente',
-      };
+      return 'Especie eliminada correctamente';
     }
   }
 }

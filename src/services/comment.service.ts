@@ -69,10 +69,7 @@ export class CommentService {
         HttpStatus.NOT_FOUND,
       );
     }
-    return {
-      status: true,
-      data: findComments,
-    };
+    return findComments;
   }
 
   async getCommentsByAnimal(animalId: string) {
@@ -112,10 +109,7 @@ export class CommentService {
       ],
     });
 
-    return {
-      status: true,
-      data: findComments,
-    };
+    return findComments;
   }
 
   async createComment(id: string, commentDto: CommentDto) {
@@ -159,10 +153,7 @@ export class CommentService {
 
     const save = await this.commentRepository.create(data);
     if (save) {
-      return {
-        status: true,
-        message: 'Comentario creado correctamente',
-      };
+      return 'Comentario creado correctamente';
     }
   }
 
@@ -217,10 +208,7 @@ export class CommentService {
     });
 
     if (update) {
-      return {
-        status: true,
-        message: 'Comentario actualizado correctamente',
-      };
+      return 'Comentario actualizado correctamente';
     }
   }
 
@@ -251,10 +239,7 @@ export class CommentService {
       });
 
       if (deleteComment) {
-        return {
-          status: true,
-          message: 'Comentario eliminado correctamente',
-        };
+        return 'Comentario eliminado correctamente';
       }
     }
     throw new UnauthorizedException(

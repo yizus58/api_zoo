@@ -26,8 +26,8 @@ export class Species extends Model<Species> {
   declare id: string;
 
   @ApiProperty({
-    example: 'crustáceos',
     description: 'Nombre de la especie',
+    example: 'crustáceos',
     type: DataType.STRING,
     nullable: false,
   })
@@ -39,8 +39,8 @@ export class Species extends Model<Species> {
   declare nombre: string;
 
   @ApiProperty({
-    example: 'eab3b67f-a18e-4e2b-b675-9e0cbe7f5bc6',
     description: 'ID de la zona que va a pertenecer',
+    example: 'eab3b67f-a18e-4e2b-b675-9e0cbe7f5bc6',
     type: DataType.UUID,
     nullable: false,
   })

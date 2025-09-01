@@ -21,8 +21,8 @@ export class User extends Model<User> {
   declare id: string;
 
   @ApiProperty({
-    example: 'juanito@mail.com',
     description: 'Correo electronico del usuario',
+    example: 'juanito@mail.com',
     type: DataType.STRING,
     nullable: false,
   })
@@ -37,8 +37,8 @@ export class User extends Model<User> {
   email: string;
 
   @ApiProperty({
-    example: 'juanito1234',
     description: 'Contraseña del usuario',
+    example: 'juanito1234',
     type: DataType.STRING,
     nullable: false,
   })

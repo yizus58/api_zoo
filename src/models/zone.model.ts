@@ -23,8 +23,8 @@ export class Zone extends Model<Zone> {
   declare id: string;
 
   @ApiProperty({
-    example: 'Zona 1',
     description: 'Nombre de la zona',
+    example: 'Zona 1',
     type: DataType.STRING,
   })
   @Unique
