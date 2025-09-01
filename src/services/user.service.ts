@@ -3,13 +3,13 @@ import {
   ConflictException,
   OnApplicationBootstrap,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
 import { ConfigService } from '@nestjs/config';
+import { InjectModel } from '@nestjs/sequelize';
+import * as bcrypt from 'bcrypt';
+import { v4 as uuidv4 } from 'uuid';
+import { CreateUserDto } from '../dto/auth.dto';
 import { User } from '../models/user.model';
 import { UserRole } from '../types/user.types';
-import { CreateUserDto } from '../dto/auth.dto';
-import { v4 as uuidv4 } from 'uuid';
-import * as bcrypt from 'bcrypt';
 
 interface UserCreateResponse {
   result: boolean;

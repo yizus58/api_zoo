@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   Column,
   Model,
@@ -19,6 +20,12 @@ export class User extends Model<User> {
   @Column(DataType.UUID)
   declare id: string;
 
+  @ApiProperty({
+    example: 'juanito@mail.com',
+    description: 'Correo electronico del usuario',
+    type: DataType.STRING,
+    nullable: false,
+  })
   @Unique
   @Column({
     type: DataType.STRING,
@@ -29,12 +36,19 @@ export class User extends Model<User> {
   })
   email: string;
 
+  @ApiProperty({
+    example: 'juanito1234',
+    description: 'Contraseña del usuario',
+    type: DataType.STRING,
+    nullable: false,
+  })
   @Column({
     type: DataType.STRING,
     allowNull: false,
   })
   password: string;
 
+  @ApiProperty({ type: DataType.ENUM, nullable: false })
   @Column({
     type: DataType.ENUM,
     values: Object.values(UserRole),

@@ -1,9 +1,9 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Species } from '../models/species.model';
-import { SpeciesDto } from '../dto/species.dto';
-import { Zone } from '../models/zone.model';
 import { Animal } from '../models/animal.model';
+import { SpeciesDto } from '../dto/species.dto';
+import { Species } from '../models/species.model';
+import { Zone } from '../models/zone.model';
 
 @Injectable()
 export class SpeciesService {

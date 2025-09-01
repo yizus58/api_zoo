@@ -1,10 +1,11 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
-import { DatabaseInitService } from './services/database-init.service';
-import { SeederService } from './services/seeder.service';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AppModule } from './app.module';
 import { initCronJobs } from './config/cron';
 import { CronService } from './services/cron.service';
+import { DatabaseInitService } from './services/database-init.service';
+import { SeederService } from './services/seeder.service';
 
 async function bootstrap() {
   const startTime = Date.now();
@@ -51,6 +52,14 @@ async function bootstrap() {
   });
 
   app.getHttpAdapter().getInstance().disable('x-powered-by');
+
+  const config = new DocumentBuilder()
+    .setTitle('Mails API')
+    .setDescription('The Mails API endpoints')
+    .setVersion('1.0')
+    .build();
+  const documentFactory = () => SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, documentFactory);
 
   const port = process.env.PORT || 3000;
   await app.listen(port, '0.0.0.0');

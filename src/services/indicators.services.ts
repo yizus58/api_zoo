@@ -1,11 +1,11 @@
 import { Injectable, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { Op } from 'sequelize';
 import { Animal } from '../models/animal.model';
+import { Comment } from '../models/comment.model';
 import { Species } from '../models/species.model';
 import { User } from '../models/user.model';
-import { Comment } from '../models/comment.model';
 import { Zone } from '../models/zone.model';
-import { Op } from 'sequelize';
 import {
   AnimalSpeciesIndicator,
   ZoneIndicator,

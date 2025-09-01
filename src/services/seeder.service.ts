@@ -1,14 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Zone } from '../models/zone.model';
-import { Species } from '../models/species.model';
-import { Animal } from '../models/animal.model';
-import { Comment } from '../models/comment.model';
-import { User } from '../models/user.model';
-import { UserRole } from '../types/user.types';
-import { DatabaseInitService } from './database-init.service';
-import * as bcrypt from 'bcrypt';
-import { v4 as uuidv4 } from 'uuid';
 import {
   randAnimal,
   randBetweenDate,
@@ -20,6 +11,15 @@ import {
   randParagraph,
   randWord,
 } from '@ngneat/falso';
+import * as bcrypt from 'bcrypt';
+import { v4 as uuidv4 } from 'uuid';
+import { DatabaseInitService } from './database-init.service';
+import { Animal } from '../models/animal.model';
+import { Comment } from '../models/comment.model';
+import { Species } from '../models/species.model';
+import { User } from '../models/user.model';
+import { Zone } from '../models/zone.model';
+import { UserRole } from '../types/user.types';
 
 @Injectable()
 export class SeederService {
@@ -86,7 +86,8 @@ export class SeederService {
         id: uuidv4(),
         email: randEmail(),
         password: randomPassword,
-        role: Math.random() > 0.9 ? UserRole.ADMIN : UserRole.EMPLEADO,
+        //role: Math.random() > 0.9 ? UserRole.ADMIN : UserRole.EMPLEADO, // Si queremos que se cree aleatoriamente ADMI
+        role: UserRole.EMPLEADO,
       });
       users.push(user);
     }

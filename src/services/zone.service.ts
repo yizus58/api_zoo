@@ -1,9 +1,9 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Zone } from '../models/zone.model';
 import { ZoneDto } from '../dto/zone.dto';
-import { Species } from '../models/species.model';
 import { Animal } from '../models/animal.model';
+import { Species } from '../models/species.model';
+import { Zone } from '../models/zone.model';
 
 @Injectable()
 export class ZoneService {
@@ -30,10 +30,7 @@ export class ZoneService {
     });
 
     if (findAreas.length == 0) {
-      throw new HttpException(
-        'No hay zonas registradas',
-        HttpStatus.NOT_FOUND,
-      );
+      throw new HttpException('No hay zonas registradas', HttpStatus.NOT_FOUND);
     }
     return findAreas;
   }
@@ -83,7 +80,18 @@ export class ZoneService {
       );
     }
 
-    return await this.zoneRepository.create(zoneDto);
+    const save = await this.zoneRepository.create(zoneDto);
+
+    if (!save) {
+      throw new HttpException(
+        'No se pudo crear la zona',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+    return {
+      result: true,
+      message: 'Zona creada con éxito',
+    };
   }
 
   async updateArea(zoneDto: ZoneDto, id: string) {

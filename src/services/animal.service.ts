@@ -1,10 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Animal } from '../models/animal.model';
 import { AnimalDto } from '../dto/animal.dto';
+import { Animal } from '../models/animal.model';
+import { Comment } from '../models/comment.model';
 import { Species } from '../models/species.model';
 import { User } from '../models/user.model';
-import { Comment } from '../models/comment.model';
 
 @Injectable()
 export class AnimalService {

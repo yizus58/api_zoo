@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   Table,
   Column,
@@ -23,24 +24,48 @@ export class Comment extends Model<Comment> {
   @Column(DataType.UUID)
   declare id: string;
 
+  @ApiProperty({
+    example: 'Que hermoso leon',
+    description: 'Comentario sobre el animal',
+    type: DataType.TEXT,
+    nullable: false,
+  })
   @AllowNull(false)
   @Column({
     type: DataType.TEXT,
   })
   declare comentario: string;
 
+  @ApiProperty({
+    example: 'eab3b67f-a18e-4e2b-b675-9e0cbe7f5bc6',
+    description: 'ID del animal que se esta comentando',
+    type: DataType.UUID,
+    nullable: false,
+  })
   @ForeignKey(() => Animal)
   @Column({
     type: DataType.UUID,
   })
   declare id_animal: string;
 
+  @ApiProperty({
+    example: '9e0c67f-a18e-4e2b-b675-eab3be7f5bc6',
+    description: 'ID del usuario que esta comentando',
+    type: DataType.UUID,
+    nullable: false,
+  })
   @ForeignKey(() => User)
   @Column({
     type: DataType.UUID,
   })
   declare id_user: string;
 
+  @ApiProperty({
+    example: '9e0c67f-a18e-4e2b-b675-eab3be7f5bc6',
+    description: 'ID del comentario inicial al cual se esta respondiendo',
+    type: DataType.UUID,
+    nullable: true,
+  })
   @ForeignKey(() => Comment)
   @AllowNull(true)
   @Column({

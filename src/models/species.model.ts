@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   Table,
   Column,
@@ -11,8 +12,8 @@ import {
   ForeignKey,
   HasMany,
 } from 'sequelize-typescript';
-import { Zone } from './zone.model';
 import { Animal } from './animal.model';
+import { Zone } from './zone.model';
 
 @Table({
   tableName: 'species',
@@ -24,6 +25,12 @@ export class Species extends Model<Species> {
   @Column(DataType.UUID)
   declare id: string;
 
+  @ApiProperty({
+    example: 'crustáceos',
+    description: 'Nombre de la especie',
+    type: DataType.STRING,
+    nullable: false,
+  })
   @Unique
   @AllowNull(false)
   @Column({
@@ -31,6 +38,12 @@ export class Species extends Model<Species> {
   })
   declare nombre: string;
 
+  @ApiProperty({
+    example: 'eab3b67f-a18e-4e2b-b675-9e0cbe7f5bc6',
+    description: 'ID de la zona que va a pertenecer',
+    type: DataType.UUID,
+    nullable: false,
+  })
   @ForeignKey(() => Zone)
   @Column({
     type: DataType.UUID,

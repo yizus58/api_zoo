@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   Table,
   Column,
@@ -21,6 +22,11 @@ export class Zone extends Model<Zone> {
   @Column(DataType.UUID)
   declare id: string;
 
+  @ApiProperty({
+    example: 'Zona 1',
+    description: 'Nombre de la zona',
+    type: DataType.STRING,
+  })
   @Unique
   @AllowNull(false)
   @Column({

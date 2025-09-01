@@ -2,7 +2,7 @@ import * as cron from 'node-cron';
 import { CronService } from '../services/cron.service';
 
 export function initCronJobs(cronService: CronService) {
-  const cronTimeDelay = '2 * * * * *';
+  const cronTimeDelay = '* 1 * * * *';
   const timezone = 'America/Bogota';
 
   console.log(

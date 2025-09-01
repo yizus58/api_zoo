@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { IndicatorsService } from './indicators.services';
-import { ExcelService } from './excel.service';
-import { PdfService } from './pdf.service';
-import { S3Service } from './s3.service';
-import { RabbitMQService } from './rabbitmq.services';
 import crypto from 'crypto';
+import { ExcelService } from './excel.service';
+import { IndicatorsService } from './indicators.services';
+import { PdfService } from './pdf.service';
+import { RabbitMQService } from './rabbitmq.services';
+import { S3Service } from './s3.service';
 import { htmlContentFile } from '../../public/htmlReport.js';
 
 @Injectable()

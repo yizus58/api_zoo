@@ -5,9 +5,9 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Comment } from '../models/comment.model';
 import { CommentDto } from '../dto/comment.dto';
 import { Animal } from '../models/animal.model';
+import { Comment } from '../models/comment.model';
 import { User } from '../models/user.model';
 import { UserRole } from '../types/user.types';
 

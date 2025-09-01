@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { IndicatorsService } from './indicators.services';
 import PdfPrinter = require('pdfmake');
+import { IndicatorsService } from './indicators.services';
 
 const fonts = {
   Roboto: {

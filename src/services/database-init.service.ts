@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Client } from 'pg';
 import { Sequelize } from 'sequelize-typescript';
-import { Zone } from '../models/zone.model';
-import { Species } from '../models/species.model';
 import { Animal } from '../models/animal.model';
+import { Species } from '../models/species.model';
 import { Comment } from '../models/comment.model';
 import { User } from '../models/user.model';
+import { Zone } from '../models/zone.model';
 @Injectable()
 export class DatabaseInitService {
   private sequelizeInstance: Sequelize | null = null;
