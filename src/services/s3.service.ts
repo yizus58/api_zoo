@@ -7,45 +7,24 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import * as crypto from 'crypto';
+import { S3Validator } from '../config/validate';
 
 @Injectable()
 export class S3Service {
   private readonly logger = new Logger(S3Service.name);
   private readonly s3Client: S3Client;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly s3Validator: S3Validator,
+  ) {
     const accountId = this.configService.get<string>('R2_ACCOUNT_ID');
     const accessKey = this.configService.get<string>('R2_BUCKET_ACCESS_KEY');
     const secretKey = this.configService.get<string>('R2_BUCKET_SECRET_KEY');
     const bucketName = this.configService.get<string>('R2_BUCKET_NAME');
     const region = this.configService.get<string>('R2_BUCKET_REGION');
 
-    if (!accountId) {
-      throw new Error('R2_ACCOUNT_ID variable de entorno es requerida');
-    }
-    if (!accessKey) {
-      throw new Error('R2_BUCKET_ACCESS_KEY variable de entorno es requerida');
-    }
-    if (!secretKey) {
-      throw new Error('R2_BUCKET_SECRET_KEY variable de entorno es requerida');
-    }
-    if (!bucketName) {
-      throw new Error('R2_BUCKET_NAME variable de entorno es requerida');
-    }
-
-    if (accessKey.trim() === '') {
-      throw new Error('R2_BUCKET_ACCESS_KEY no puede estar vacía');
-    }
-    if (secretKey.trim() === '') {
-      throw new Error('R2_BUCKET_SECRET_KEY no puede estar vacía');
-    }
-
-    if (accessKey.length < 10) {
-      throw new Error('R2_BUCKET_ACCESS_KEY parece ser inválida (muy corta)');
-    }
-    if (secretKey.length < 20) {
-      throw new Error('R2_BUCKET_SECRET_KEY parece ser inválida (muy corta)');
-    }
+    this.s3Validator.validateEnvS3(accountId, accessKey, secretKey, bucketName);
 
     const accountIdRegex = /^[a-f0-9]{32}$/i;
     if (!accountIdRegex.test(accountId)) {
