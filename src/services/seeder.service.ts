@@ -67,7 +67,11 @@ export class SeederService {
 
   private async createAdminUser(): Promise<User> {
     console.log('👤 Creando usuario administrador...');
-    const hashedPassword = await bcrypt.hash('admin', 10);
+    const adminPassword = this.configService.get<string>('ADMIN_PASSWORD');
+    if (!adminPassword) {
+      throw new Error('ADMIN_PASSWORD must be set to run the seeder');
+    }
+    const hashedPassword = await bcrypt.hash(adminPassword, 10);
     return User.create({
       id: uuidv4(),
       email: 'admin@admin.com',

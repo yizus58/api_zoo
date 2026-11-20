@@ -31,9 +31,15 @@ export class UserService implements OnApplicationBootstrap {
   async onApplicationBootstrap() {
     const shouldSeedAdmin =
       this.configService.get<string>('NODE_ENV') === 'development' ||
-      this.configService.get<boolean>('SEED_ADMIN', false);
+      String(this.configService.get('SEED_ADMIN', 'false')).toLowerCase() ===
+        'true';
 
     if (shouldSeedAdmin && !this.adminUserSeeded) {
+      if (!this.configService.get<string>('ADMIN_PASSWORD')) {
+        throw new Error(
+          'ADMIN_PASSWORD must be set to seed the admin user (NODE_ENV=development or SEED_ADMIN=true)',
+        );
+      }
       try {
         await this.seedAdminUser();
       } catch (error) {
@@ -55,7 +61,10 @@ export class UserService implements OnApplicationBootstrap {
     if (!adminExists) {
       const saltRounds =
         this.configService.get<string>('NODE_ENV') === 'development' ? 8 : 10;
-      const hashedPassword = await bcrypt.hash('admin', saltRounds);
+      const hashedPassword = await bcrypt.hash(
+        this.configService.getOrThrow<string>('ADMIN_PASSWORD'),
+        saltRounds,
+      );
 
       await this.userRepository.create({
         id: uuidv4(),
