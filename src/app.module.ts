@@ -1,40 +1,33 @@
-import { AppService } from './app.service';
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
 import { ConfigModule } from '@nestjs/config';
-import { DatabaseModule } from './modules/database.module';
-import { UserModule } from './modules/user.module';
-import { AuthModule } from './modules/auth.module';
-import { ZoneModule } from './modules/zone.module';
-import { SpeciesModule } from './modules/species.module';
-import { AnimalModule } from './modules/animal.module';
-import { CommentModule } from './modules/comment.module';
-import { IndicatorsModule } from './modules/indicators.module';
-import { CronModule } from './modules/cron.module';
-import { S3Module } from './modules/s3.module';
-import { RabbitMQModule } from './modules/rabbitmq.module';
-
-const environment = process.env.NODE_ENV;
+import { validateEnv } from './config/env.validation';
+import { DatabaseModule } from './database/database.module';
+import { AnimalsModule } from './modules/animals/animals.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { CommentsModule } from './modules/comments/comments.module';
+import { IndicatorsModule } from './modules/indicators/indicators.module';
+import { ReportsModule } from './modules/reports/reports.module';
+import { SpeciesModule } from './modules/species/species.module';
+import { UsersModule } from './modules/users/users.module';
+import { ZonesModule } from './modules/zones/zones.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: environment ? '.env' + '.' + environment : '.env',
+      // .env.<NODE_ENV> first, then .env; real environment variables win over both.
+      envFilePath: [`.env.${process.env.NODE_ENV ?? 'development'}`, '.env'],
+      validate: validateEnv,
     }),
     DatabaseModule,
-    UserModule,
     AuthModule,
-    ZoneModule,
+    UsersModule,
+    ZonesModule,
     SpeciesModule,
-    AnimalModule,
-    CommentModule,
+    AnimalsModule,
+    CommentsModule,
     IndicatorsModule,
-    CronModule,
-    S3Module,
-    RabbitMQModule,
+    ReportsModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}
